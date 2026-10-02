@@ -1,0 +1,7 @@
+{
+  "name": "SensorGuard",
+  "description": "Transparent Sensor & Privacy Guard for Microphone and Camera with Call and Screen-State Intelligence",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Security Shield Outer -->
+    <path
+        android:fillColor="#1500E5FF"
+        android:pathData="M54,22L30,32v22c0,16.5 10.2,31.9 24,36c13.8,-4.1 24,-19.5 24,-36V32L54,22z"
+        android:strokeWidth="2.5"
+        android:strokeColor="#00E5FF" />
+    <!-- Inner Shield Accent -->
+    <path
+        android:fillColor="#2200E676"
+        android:pathData="M54,28L36,36v18c0,12.5 7.7,24.1 18,27.5c10.3,-3.4 18,-15 18,-27.5V36L54,28z"
+        android:strokeWidth="1.5"
+        android:strokeColor="#00E676" />
+    <!-- Microphone / Lock Core Symbol -->
+    <!-- Mic Body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,42c-2.8,0 -5,2.2 -5,5v7c0,2.8 2.2,5 5,5s5,-2.2 5,-5v-7C59,44.2 56.8,42 54,42z" />
+    <!-- Mic Arc Stand -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M44,48v6c0,5.5 4.5,10 10,10s10,-4.5 10,-10v-6 M54,64v6 M48,70h12"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round" />
+    <!-- Status Dot -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M54,34a2,2 0 1,0 0.001,0" />
+</vector>
+

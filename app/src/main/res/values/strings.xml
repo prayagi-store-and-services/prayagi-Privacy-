@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">SensorGuard</string>
+    <string name="admin_receiver_label">SensorGuard Device Policy</string>
+    <string name="admin_receiver_description">Enables hardware-level Camera privacy disable policy during shield lock.</string>
+    <string name="accessibility_service_description">Monitors active foreground applications and blocks unauthorized background microphone access when screen is locked.</string>
+</resources>
