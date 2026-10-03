@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.History
@@ -40,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.example.service.AppRiskScanner
+import com.example.camcheck.CameraCheckScreen
 import com.example.ui.screens.AppAuditScreen
 import com.example.ui.screens.AppUsesReportScreen
 import com.example.ui.screens.DashboardScreen
@@ -201,6 +204,24 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                         ),
                         modifier = Modifier.testTag("nav_item_report")
                     )
+
+                    NavigationBarItem(
+                        selected = selectedTab == 5,
+                        onClick = { selectedTab = 5 },
+                        icon = {
+                            Icon(
+                                imageVector = if (selectedTab == 5) Icons.Filled.Videocam else Icons.Outlined.Videocam,
+                                contentDescription = "Camera check"
+                            )
+                        },
+                        label = { Text("Cameras") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = NeonCyan,
+                            selectedTextColor = NeonCyan,
+                            indicatorColor = NeonCyan.copy(alpha = 0.15f)
+                        ),
+                        modifier = Modifier.testTag("nav_item_cameras")
+                    )
                 }
             }
         ) { innerPadding ->
@@ -229,6 +250,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                     4 -> AppUsesReportScreen(
                         viewModel = viewModel
                     )
+                    5 -> CameraCheckScreen()
                 }
             }
         }
