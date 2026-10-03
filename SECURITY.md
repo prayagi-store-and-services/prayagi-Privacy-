@@ -28,3 +28,6 @@ Once per UTC day (and once per month) the app adds 1 to a public counter in Fire
 ## Audio focus and media (changed in 1.0.6)
 - In the default Max Security (hardware) mode the app no longer asks Android for audio focus. Before, turning the screen off made the system pause the user's music or video. Now playback continues; only the microphone line is reserved.
 - Power Saver (Focus) mode still uses audio focus and can pause other apps' media. The settings text now says so.
+
+## Installer file cleanup
+After an in-app update installs, the app restarts and, on start, deletes every downloaded installer file from its cache folder (`cache/updates/`). Nothing from the update is left in storage. A new download also removes older files first. If the user cancels the install, the file is removed the next time the app starts.
