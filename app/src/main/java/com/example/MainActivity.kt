@@ -18,8 +18,6 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.History
@@ -40,6 +38,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.platform.testTag
 import com.example.service.AppRiskScanner
 import com.example.camcheck.CameraCheckScreen
@@ -205,31 +205,27 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                         modifier = Modifier.testTag("nav_item_report")
                     )
 
-                    NavigationBarItem(
-                        selected = selectedTab == 5,
-                        onClick = { selectedTab = 5 },
-                        icon = {
-                            Icon(
-                                imageVector = if (selectedTab == 5) Icons.Filled.Videocam else Icons.Outlined.Videocam,
-                                contentDescription = "Camera check"
-                            )
-                        },
-                        label = { Text("Cameras") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = NeonCyan,
-                            selectedTextColor = NeonCyan,
-                            indicatorColor = NeonCyan.copy(alpha = 0.15f)
-                        ),
-                        modifier = Modifier.testTag("nav_item_cameras")
-                    )
                 }
             }
         ) { innerPadding ->
+            androidx.compose.foundation.layout.Column(Modifier.padding(innerPadding)) {
+            // Header entry: Travel Checking is one tap away from every screen.
+            androidx.compose.foundation.layout.Row(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+            ) {
+                Text("SensorGuard", style = androidx.compose.material3.MaterialTheme.typography.titleMedium, color = NeonCyan)
+                androidx.compose.material3.OutlinedButton(
+                    onClick = { selectedTab = if (selectedTab == 5) 0 else 5 },
+                    modifier = Modifier.testTag("header_travel_checking")
+                ) { Text(if (selectedTab == 5) "Close Travel Checking" else "Travel Checking") }
+            }
             AnimatedContent(
                 targetState = selectedTab,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "tab_transition",
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.weight(1f)
             ) { tabIndex ->
                 when (tabIndex) {
                     0 -> DashboardScreen(
@@ -252,6 +248,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                     )
                     5 -> CameraCheckScreen()
                 }
+            }
             }
         }
     }
