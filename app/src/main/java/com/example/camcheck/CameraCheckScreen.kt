@@ -73,11 +73,16 @@ fun CameraCheckScreen(modifier: Modifier = Modifier, onBack: (() -> Unit)? = nul
     val scope = rememberCoroutineScope()
     val main = remember { Handler(Looper.getMainLooper()) }
 
+    var step by remember { mutableStateOf(0) }
+    val stepCount = 5
+
     // Magnetic field
     var magNow by remember { mutableFloatStateOf(Float.NaN) }
     var magBase by remember { mutableFloatStateOf(Float.NaN) }
     var hasMag by remember { mutableStateOf(true) }
-    DisposableEffect(Unit) {
+    DisposableEffect(step == 0) {
+        if (step != 0) return@DisposableEffect onDispose { }
+        magBase = Float.NaN
         val sm = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val sensor = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         val l = object : SensorEventListener {
@@ -96,9 +101,13 @@ fun CameraCheckScreen(modifier: Modifier = Modifier, onBack: (() -> Unit)? = nul
     val flashId = remember { backCameraWithFlash(context) }
     var torchOn by remember { mutableStateOf(false) }
     var torchError by remember { mutableStateOf<String?>(null) }
-    DisposableEffect(Unit) {
+    // The torch is switched off whenever you leave step 2 or this screen.
+    DisposableEffect(step) {
         onDispose {
-            if (torchOn && flashId != null) try { (context.getSystemService(Context.CAMERA_SERVICE) as CameraManager).setTorchMode(flashId, false) } catch (e: Exception) {}
+            if (torchOn && flashId != null) {
+                try { (context.getSystemService(Context.CAMERA_SERVICE) as CameraManager).setTorchMode(flashId, false) } catch (e: Exception) {}
+                torchOn = false
+            }
         }
     }
 
@@ -108,17 +117,21 @@ fun CameraCheckScreen(modifier: Modifier = Modifier, onBack: (() -> Unit)? = nul
     var progress by remember { mutableFloatStateOf(0f) }
     var scanMsg by remember { mutableStateOf<String?>(null) }
     var job by remember { mutableStateOf<Job?>(null) }
+    DisposableEffect(Unit) { onDispose { job?.cancel() } }
 
     Column(modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (onBack != null) OutlinedButton(onClick = onBack) { Text("Back") }
-        Text("Hidden camera check", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text("Travel Checking", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Text(
             "Honest note: a phone cannot prove that a room has no hidden camera. These tools only give hints and help you look. " +
-                "Nothing here is stored or sent anywhere.",
+                "Nothing here is stored or sent anywhere. Nothing runs in the background: the magnetic meter works only while step 1 is open, the torch only while step 2 is open, and the Wi-Fi scan only when you tap Scan.",
             style = MaterialTheme.typography.bodyMedium
         )
+        val titles = listOf("Magnetic field meter", "Lens finder", "Infrared check", "Wi-Fi device scan", "Room checklist")
+        Text("Step ${step + 1} of $stepCount: ${titles[step]}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        LinearProgressIndicator(progress = { (step + 1) / stepCount.toFloat() }, modifier = Modifier.fillMaxWidth())
 
-        SectionCard("1. Magnetic field meter") {
+        if (step == 0) SectionCard("1. Magnetic field meter") {
             if (!hasMag) {
                 Text("Unavailable: this phone has no magnetic sensor.")
             } else {
@@ -138,7 +151,7 @@ fun CameraCheckScreen(modifier: Modifier = Modifier, onBack: (() -> Unit)? = nul
             }
         }
 
-        SectionCard("2. Lens finder (torch)") {
+        if (step == 1) SectionCard("2. Lens finder (torch)") {
             Text("Switch the room lights off. Turn the torch on and sweep it slowly over mirrors, clocks, smoke detectors, vents and shelves. A camera lens gives back a small bright glint. Look at it from a few angles.")
             if (flashId == null) {
                 Text("Unavailable: this phone has no back torch.")
@@ -153,7 +166,7 @@ fun CameraCheckScreen(modifier: Modifier = Modifier, onBack: (() -> Unit)? = nul
             }
         }
 
-        SectionCard("3. Infrared check (guide)") {
+        if (step == 2) SectionCard("3. Infrared check (guide)") {
             Text("Some hidden cameras use infrared lights for night vision. In a dark room, many rear phone cameras show these lights as faint purple or white dots. Open your camera, point it around the dark room and look for dots that do not move with the phone.")
             Text("Some phones filter infrared out. Seeing nothing does NOT prove the room is clear.", style = MaterialTheme.typography.bodySmall)
             Button(onClick = {
@@ -162,7 +175,7 @@ fun CameraCheckScreen(modifier: Modifier = Modifier, onBack: (() -> Unit)? = nul
             }) { Text("Open camera app") }
         }
 
-        SectionCard("4. Wi-Fi device scan") {
+        if (step == 3) SectionCard("4. Wi-Fi device scan") {
             Text("Lists devices that answer on the Wi-Fi network you are connected to (like a network scanner). A camera that records to a card or uses another network will not show up here.")
             Text("Limits: Android does not let apps read device MAC addresses or brands, so those are Unavailable. \"Possible camera\" is a hint, not proof.", style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -199,8 +212,12 @@ fun CameraCheckScreen(modifier: Modifier = Modifier, onBack: (() -> Unit)? = nul
             }
         }
 
-        SectionCard("5. Hotel room check, step by step") {
+        if (step == 4) SectionCard("5. Hotel room check, step by step") {
             CameraCheckLogic.ROOM_CHECKLIST.forEachIndexed { i, s -> Text("${i + 1}. $s") }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(enabled = step > 0, onClick = { step-- }) { Text("Previous") }
+            Button(enabled = step < stepCount - 1, onClick = { step++ }) { Text(if (step < stepCount - 1) "Next step" else "Done") }
         }
         Spacer(Modifier.height(24.dp))
     }
