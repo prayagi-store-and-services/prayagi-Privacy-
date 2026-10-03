@@ -16,6 +16,8 @@ class SensorGuardApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        // Automatic crash reports: a crash saved last time is sent now, in the background. No personal data.
+        com.example.stats.CrashReporter.install(this)
 
         val database = AppDatabase.getDatabase(this)
         repository = PrivacyRepository(this, database.privacyEventDao())
