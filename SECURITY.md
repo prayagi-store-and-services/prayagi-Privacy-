@@ -24,3 +24,7 @@ Once per UTC day (and once per month) the app adds 1 to a public counter in Fire
 - The report contains only: the app name, phone model, Android version, app version, and the crash stack trace (exception class names and code locations; exception messages are dropped on purpose).
 - It contains no name, email, location, files, contacts, device IDs or usage history.
 - It is sent through the same form pipeline as the website forms (FormSubmit) to the developer's email.
+
+## Audio focus and media (changed in 1.0.6)
+- In the default Max Security (hardware) mode the app no longer asks Android for audio focus. Before, turning the screen off made the system pause the user's music or video. Now playback continues; only the microphone line is reserved.
+- Power Saver (Focus) mode still uses audio focus and can pause other apps' media. The settings text now says so.
