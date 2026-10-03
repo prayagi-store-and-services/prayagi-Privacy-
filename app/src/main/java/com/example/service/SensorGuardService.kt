@@ -11,6 +11,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
+import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.media.AudioRecordingConfiguration
 import android.media.MediaRecorder
@@ -73,6 +74,9 @@ class SensorGuardService : Service() {
     private var audioRecordingCallback: AudioManager.AudioRecordingCallback? = null
     private var opActiveChangedListener: AppOpsManager.OnOpActiveChangedListener? = null
     private var activityManager: ActivityManager? = null
+    private val watchdogThrottle = com.example.watchdog.WatchdogLogic.Throttle()
+    private var cameraAvailabilityCallback: CameraManager.AvailabilityCallback? = null
+    private var cameraManager: CameraManager? = null
 
     private val headsetReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -134,6 +138,7 @@ class SensorGuardService : Service() {
         registerNetworkMonitoring()
         registerTelephonyListener()
         registerSensorActivityMonitoring()
+        registerCameraWatchdog()
 
         repository.updateServiceState(true)
         repository.recordEvent(
@@ -697,6 +702,40 @@ class SensorGuardService : Service() {
             osEnforcement = "OS VERIFIED",
             timestamp = System.currentTimeMillis()
         )
+        watchdogAlert("Microphone", isScreenOn, "mic", null)
+    }
+
+    /** Watchdog: loud alert only when the screen is off and no call explains it; one alert per sensor per minute. */
+    private fun watchdogAlert(sensor: String, screenOn: Boolean, key: String, appName: String?) {
+        if (!com.example.watchdog.WatchdogLogic.isSuspicious(screenOn, currentCallState != CallStateEnum.IDLE)) return
+        if (!watchdogThrottle.allow(key, System.currentTimeMillis())) return
+        sendPrivacyAlertNotification(
+            title = com.example.watchdog.WatchdogLogic.title(sensor, screenOn),
+            contentText = com.example.watchdog.WatchdogLogic.body(sensor, appName)
+        )
+    }
+
+    private fun registerCameraWatchdog() {
+        try {
+            val cm = getSystemService(Context.CAMERA_SERVICE) as? CameraManager ?: return
+            cameraManager = cm
+            val cb = object : CameraManager.AvailabilityCallback() {
+                override fun onCameraUnavailable(cameraId: String) {
+                    val screenOn = currentScreenState == ScreenStateEnum.SCREEN_ON || currentScreenState == ScreenStateEnum.SCREEN_UNLOCKED
+                    repository.recordEvent(
+                        eventType = "CAMERA_IN_USE_SIGNAL",
+                        title = "Camera in use (camera $cameraId)",
+                        description = "A camera session was detected. Which app: Unavailable. Screen: " + (if (screenOn) "ON" else "OFF") + ".",
+                        severity = if (screenOn) EventSeverity.INFO else EventSeverity.WARNING
+                    )
+                    watchdogAlert("Camera", screenOn, "cam", null)
+                }
+            }
+            cameraAvailabilityCallback = cb
+            cm.registerAvailabilityCallback(cb, Handler(Looper.getMainLooper()))
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not register camera watchdog: ${e.message}")
+        }
     }
 
     private fun handleObservedSensorAccess(op: String, uid: Int, pkg: String) {
@@ -851,6 +890,10 @@ class SensorGuardService : Service() {
                 audioManager?.unregisterAudioRecordingCallback(audioRecordingCallback!!)
             } catch (ignored: Exception) {}
         }
+
+        try {
+            cameraAvailabilityCallback?.let { cameraManager?.unregisterAvailabilityCallback(it) }
+        } catch (ignored: Exception) {}
 
         try {
             unregisterReceiver(screenReceiver)

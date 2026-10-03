@@ -43,3 +43,9 @@ After an in-app update installs, the app restarts and, on start, deletes every d
 - Android does not let apps read other devices' MAC addresses, so brand and MAC are shown as Unavailable. "Possible camera" appears only when a camera-style port answers or the device name contains a word like cam, ipc, dvr or nvr. It is a hint, not proof.
 - Torch: uses the phone's torch only while you press the button, no camera permission. Magnetic meter: reads the phone's magnetic sensor on screen only, nothing is recorded.
 - Permissions: INTERNET and ACCESS_NETWORK_STATE (the scan needs network sockets and the phone's own address range). No camera, location, storage or contacts permission is added. No new library.
+
+## Mic and camera watchdog, honest limits (added in 1.0.9)
+- What it does: when a microphone recording session or a camera session is detected while the screen is OFF and no phone call explains it, SensorGuard shows one alert (at most one per sensor per minute) and records an event. With the screen ON it only records the event, with no alert.
+- What it cannot do: a normal Android app is not told which other app is using the microphone or camera. The alert therefore says "Which app: Unavailable" unless Android itself supplies a name. It is a signal, not proof, and it can miss sessions Android does not report to normal apps.
+- The cross-app app-name alerts that already existed depend on an Android API that is documented for system apps with special permissions (see AOSP AppOps notes). On a normal phone this may not report other apps at all. We have not tested it on a real device, so do not rely on it. Android's own green mic/camera indicator (Android 12 and later) and the Privacy dashboard are the reliable source.
+- Permissions: none added. No new library.
