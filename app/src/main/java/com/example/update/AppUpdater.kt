@@ -45,7 +45,7 @@ data class AppRelease(
  * (the user confirms with one system tap). Android only installs it if it is signed with the same key as the installed app.
  */
 object AppUpdater {
-    const val REPO = "prayagideepak-collab/prayagi-Privacy-"
+    const val REPO = "prayagi-store-and-services/prayagi-Privacy-"
     const val APP_LABEL = "SensorGuard"
     private const val PREFS = "netra_app_update"
     private const val KEY_LAST_CHECK = "last_check_ms"
