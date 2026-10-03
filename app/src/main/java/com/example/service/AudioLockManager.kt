@@ -13,6 +13,9 @@ import android.util.Log
 
 import com.example.data.model.AudioLockMode
 
+/** Audio focus pauses other apps' playback, so only the Power Saver (focus) mode may take it. */
+fun shouldRequestAudioFocus(mode: AudioLockMode): Boolean = mode == AudioLockMode.AUDIO_FOCUS_ONLY
+
 class AudioLockManager(private val context: Context) {
 
     private var audioRecord: AudioRecord? = null
@@ -29,8 +32,10 @@ class AudioLockManager(private val context: Context) {
         if (isRecordingLocked) return true
 
         try {
-            // Step 1: Request exclusive Audio Focus
-            requestAudioFocus()
+            // Step 1: Audio focus is taken ONLY in Power Saver mode. In the hardware mode it is not
+            // requested, because exclusive focus makes the system pause the user's music or video
+            // when the screen turns off. The hardware line reservation below does not stop playback.
+            if (shouldRequestAudioFocus(mode)) requestAudioFocus()
 
             if (mode == AudioLockMode.AUDIO_FOCUS_ONLY) {
                 isRecordingLocked = true
@@ -70,7 +75,7 @@ class AudioLockManager(private val context: Context) {
             Log.e("AudioLockManager", "Failed to engage audio lock: ${e.message}", e)
         }
 
-        // Even if AudioRecord was not initialized, Audio Focus was requested
+        // Even if AudioRecord could not be opened (for example no microphone permission yet), the guard state is kept
         isRecordingLocked = true
         return true
     }
