@@ -286,7 +286,7 @@ fun PolicySettingsScreen(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Choose between maximum hardware isolation or lightweight power-saving audio focus mode",
+                    text = "Max Security keeps your music and video playing. Power Saver uses audio focus, which can pause other apps' media",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
