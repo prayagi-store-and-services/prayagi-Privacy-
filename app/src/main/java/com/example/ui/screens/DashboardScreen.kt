@@ -97,14 +97,6 @@ fun DashboardScreen(
         ) {
             Column {
                 Text(
-                    text = "SensorGuard",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.5.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
                     text = "Hardware Privacy Engine",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
