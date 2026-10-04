@@ -53,3 +53,9 @@ After an in-app update installs, the app restarts and, on start, deletes every d
 - What it cannot do: a normal Android app is not told which other app is using the microphone or camera. The alert therefore says "Which app: Unavailable" unless Android itself supplies a name. It is a signal, not proof, and it can miss sessions Android does not report to normal apps.
 - The cross-app app-name alerts that already existed depend on an Android API that is documented for system apps with special permissions (see AOSP AppOps notes). On a normal phone this may not report other apps at all. We have not tested it on a real device, so do not rely on it. Android's own green mic/camera indicator (Android 12 and later) and the Privacy dashboard are the reliable source.
 - Permissions: none added. No new library.
+
+## Permission and backup cleanup (version 1.1.2)
+
+- Removed PACKAGE_USAGE_STATS: it was declared but no code reads usage statistics, so it granted nothing real. Nothing the app shows depended on it.
+- Turned off Android app backup (allowBackup=false). The old setting copied the app's saved settings and history to Google backup with sample rules that limited nothing. A reinstall now starts clean; the app keeps no account, so nothing is lost on the server.
+- No new permission, network call or library.
