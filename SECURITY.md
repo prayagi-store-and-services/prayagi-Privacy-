@@ -1,5 +1,8 @@
 # Security notes - SensorGuard
 
+## Standard header (v1.1.0)
+The header is the Netra standard: 56 dp, fixed, only the app name, the installed version (Android package info, "Unavailable" if missing) and the device date/time. All screens scroll; only this header and the bottom bar stay fixed. No new permission, network call or library. Every shown value needs a real evidence source, otherwise "Unavailable".
+
 ## In-app update (new)
 
 What it does: on app open, at most once a day, the app asks `https://github.com/prayagi-store-and-services/prayagi-Privacy-/releases/latest/download/latest.json` whether a newer version exists. If yes, it shows the version and what changed, and the user taps Update. The app downloads `app-release.apk` from the same release, checks its size and SHA-256 against latest.json, and only then opens the Android package installer. The user confirms with one system tap.
