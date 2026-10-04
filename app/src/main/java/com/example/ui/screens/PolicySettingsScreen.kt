@@ -103,6 +103,8 @@ fun PolicySettingsScreen(
         Spacer(modifier = Modifier.height(16.dp))
         com.example.update.UpdateCheckCard()
         Spacer(modifier = Modifier.height(16.dp))
+        com.example.stats.CrashReportCard()
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Battery Optimization Exemption Card
         val isIgnoringBattery = viewModel.isIgnoringBatteryOptimizations(context)
