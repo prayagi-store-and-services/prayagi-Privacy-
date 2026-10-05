@@ -89,6 +89,7 @@ fun DashboardScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .testTag("dashboard_screen")
     ) {
+        com.example.festival.FestivalBannerCard(modifier = Modifier.fillMaxWidth())
         // Top Header
         Row(
             modifier = Modifier.fillMaxWidth(),
