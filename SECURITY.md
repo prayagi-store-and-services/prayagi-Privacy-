@@ -74,3 +74,8 @@ After an in-app update installs, the app restarts and, on start, deletes every d
 
 ## Phone security check (v1.2.0)
 Settings has a "Phone security check" card. When the screen opens it reads, once, from Android itself: the security patch date (`Build.VERSION.SECURITY_PATCH`) and its age in days, with a warning line when it is more than 90 days old (our own threshold, not an Android rule), and the non-system apps that ask to install other apps and are currently allowed to (App Ops, Android 10 and newer; older versions show Unavailable). It uses the existing see-installed-apps permission. No new permission, no network call, no library, nothing runs in the background and nothing is stored or sent. If a value cannot be read it shows Unavailable.
+
+## Festival banner (version 1.2.1)
+
+- A card near the top of the home screen shows today's festival (India calendar, bundled in the app, from timeanddate.com India 2026-2027) or "coming soon" for a festival within 3 days, with the live date and time. India's Independence Day (15 August) is shown too. It has no death anniversaries and no other country's days. After 2027 there is no data, so no banner is shown and nothing is invented. A date marked "may differ by a day" says so.
+- It works offline. No new permission, network call or library.
