@@ -134,6 +134,14 @@ class PrivacyRepository(
         updateSettings(updated)
     }
 
+    /** Saves what the guard just reported so the home screen widget can show it (event driven, no polling). */
+    private fun persistWidgetSnapshot() {
+        try {
+            com.example.widget.SgWidgetStore.save(context, _guardState.value)
+            com.example.widget.SgWidgetProvider.refresh(context)
+        } catch (_: Exception) {}
+    }
+
     fun updateServiceState(isRunning: Boolean) {
         _guardState.update { current ->
             val newStatus = calculateStatus(
@@ -149,6 +157,7 @@ class PrivacyRepository(
                 status = newStatus
             )
         }
+        persistWidgetSnapshot()
     }
 
     fun updateEmergencyLockdown(isEmergency: Boolean) {
@@ -166,6 +175,7 @@ class PrivacyRepository(
                 status = newStatus
             )
         }
+        persistWidgetSnapshot()
     }
 
     fun updateScreenState(screenState: ScreenStateEnum) {
@@ -183,6 +193,7 @@ class PrivacyRepository(
                 status = newStatus
             )
         }
+        persistWidgetSnapshot()
     }
 
     fun updateCallState(callState: CallStateEnum) {
@@ -200,6 +211,7 @@ class PrivacyRepository(
                 status = newStatus
             )
         }
+        persistWidgetSnapshot()
     }
 
     fun updateLockState(isMicLocked: Boolean, isCamBlocked: Boolean, isDeviceAdmin: Boolean) {
@@ -219,6 +231,7 @@ class PrivacyRepository(
                 status = newStatus
             )
         }
+        persistWidgetSnapshot()
     }
 
     fun getEventsBetween(startTime: Long, endTime: Long): Flow<List<PrivacyEvent>> {
