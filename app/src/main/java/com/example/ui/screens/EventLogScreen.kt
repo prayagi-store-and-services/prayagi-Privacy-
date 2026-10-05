@@ -445,7 +445,7 @@ fun EventLogScreen(
                 FilterChip(
                     selected = selectedTriStateFilter == tri,
                     onClick = { selectedTriStateFilter = if (selectedTriStateFilter == tri) null else tri },
-                    label = { Text(tri.name, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)) },
+                    label = { Text(tri.name, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), maxLines = 1, softWrap = false) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = when (tri) {
                             TriState.REQUESTED -> AmberWarning.copy(alpha = 0.25f)
@@ -466,7 +466,7 @@ fun EventLogScreen(
             FilterChip(
                 selected = selectedRiskFilter == LedgerRisk.CRITICAL,
                 onClick = { selectedRiskFilter = if (selectedRiskFilter == LedgerRisk.CRITICAL) null else LedgerRisk.CRITICAL },
-                label = { Text("Critical Alerts", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp)) },
+                label = { Text("Critical Alerts", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), maxLines = 1, softWrap = false) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = CrimsonAlert.copy(alpha = 0.25f),
                     selectedLabelColor = CrimsonAlert
@@ -618,10 +618,9 @@ fun LedgerEventItemCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 // Top Metadata Row: Timestamp (12-hour MS) & Tri-State Pill
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
                     Text(
                         text = event.getFormattedTime(),
@@ -653,6 +652,8 @@ fun LedgerEventItemCard(
                             ) {
                                 Text(
                                     text = event.enforcementAction.name,
+                                maxLines = 1,
+                                softWrap = false,
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Black
@@ -671,6 +672,8 @@ fun LedgerEventItemCard(
                         ) {
                             Text(
                                 text = event.triState.name,
+                                maxLines = 1,
+                                softWrap = false,
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Black
@@ -688,6 +691,8 @@ fun LedgerEventItemCard(
                         ) {
                             Text(
                                 text = event.riskLevel.name,
+                                maxLines = 1,
+                                softWrap = false,
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold
