@@ -66,3 +66,8 @@ After an in-app update installs, the app restarts and, on start, deletes every d
 - Stored on this phone only (local preferences, not backed up because backup is off): the status name, the three yes/no values and the time. Nothing is sent anywhere.
 - No timer or background work: the widget redraws only when the guard service reports a change.
 - No new permission, network call or library. The widget receiver is exported because Android's launcher must send it update events; it handles only that action. Tapping the widget opens the app.
+
+## Permissions list (version 1.1.4)
+
+- New "Permissions" card in Policy settings: lists each permission the app uses, the plain reason, and the live status read from Android when you open the screen (no timer). Tapping a row opens the matching Android page where you can allow or stop it. Normal permissions that cannot be switched off (see installed apps, internet, start after reboot) are shown as always allowed.
+- No new permission, network call or library.
