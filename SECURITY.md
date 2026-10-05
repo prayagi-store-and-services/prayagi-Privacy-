@@ -79,3 +79,9 @@ Settings has a "Phone security check" card. When the screen opens it reads, once
 
 - A card near the top of the home screen shows today's festival (India calendar, bundled in the app, from timeanddate.com India 2026-2027) or "coming soon" for a festival within 3 days, with the live date and time. India's Independence Day (15 August) is shown too. It has no death anniversaries and no other country's days. After 2027 there is no data, so no banner is shown and nothing is invented. A date marked "may differ by a day" says so.
 - It works offline. No new permission, network call or library.
+
+## Cleaner screens, first step (version 1.2.2)
+- The second fixed row under the header (the app name repeated, with a Travel Checking button) is gone. Only the 56 dp header and the bottom bar stay fixed.
+- Travel Checking is now a button at the top of the Guard tab, and the Travel Checking screen has its own Back button.
+- Bottom bar names stay on one line.
+- No new permission, library or network call.
