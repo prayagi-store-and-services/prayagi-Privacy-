@@ -213,7 +213,7 @@ fun AppAuditScreen(
             FilterChip(
                 selected = selectedFilter == "ALL",
                 onClick = { selectedFilter = "ALL" },
-                label = { Text("All (${scannedApps.size})") },
+                label = { Text("All (${scannedApps.size})", maxLines = 1, softWrap = false) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = NeonCyan.copy(alpha = 0.2f),
                     selectedLabelColor = NeonCyan
@@ -222,7 +222,7 @@ fun AppAuditScreen(
             FilterChip(
                 selected = selectedFilter == "CRITICAL",
                 onClick = { selectedFilter = "CRITICAL" },
-                label = { Text("High Risk ($criticalCount)") },
+                label = { Text("High Risk ($criticalCount)", maxLines = 1, softWrap = false) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = CrimsonAlert.copy(alpha = 0.2f),
                     selectedLabelColor = CrimsonAlert
@@ -231,7 +231,7 @@ fun AppAuditScreen(
             FilterChip(
                 selected = selectedFilter == "MIC",
                 onClick = { selectedFilter = "MIC" },
-                label = { Text("Mic ($micCount)") },
+                label = { Text("Mic ($micCount)", maxLines = 1, softWrap = false) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = AmberWarning.copy(alpha = 0.2f),
                     selectedLabelColor = AmberWarning
@@ -240,7 +240,7 @@ fun AppAuditScreen(
             FilterChip(
                 selected = selectedFilter == "CAM",
                 onClick = { selectedFilter = "CAM" },
-                label = { Text("Cam ($camCount)") },
+                label = { Text("Cam ($camCount)", maxLines = 1, softWrap = false) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = NeonCyan.copy(alpha = 0.2f),
                     selectedLabelColor = NeonCyan
