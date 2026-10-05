@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sg_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#101926"
+    android:orientation="vertical"
+    android:padding="12dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SENSORGUARD" android:textColor="#00E5FF" android:textSize="10sp" android:textStyle="bold" />
+    <TextView android:id="@+id/sg_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="Unavailable" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
+    <TextView android:id="@+id/sg_mic" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="Microphone: Unavailable" android:textColor="#E2E8F0" android:textSize="12sp" />
+    <TextView android:id="@+id/sg_cam" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="Camera: Unavailable" android:textColor="#E2E8F0" android:textSize="12sp" />
+    <TextView android:id="@+id/sg_admin" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="Device admin: Unavailable" android:textColor="#E2E8F0" android:textSize="12sp" />
+    <TextView android:id="@+id/sg_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="Open SensorGuard once to start" android:textColor="#64748B" android:textSize="9sp" />
+</LinearLayout>

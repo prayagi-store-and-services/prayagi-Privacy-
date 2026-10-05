@@ -59,3 +59,10 @@ After an in-app update installs, the app restarts and, on start, deletes every d
 - Removed PACKAGE_USAGE_STATS: it was declared but no code reads usage statistics, so it granted nothing real. Nothing the app shows depended on it.
 - Turned off Android app backup (allowBackup=false). The old setting copied the app's saved settings and history to Google backup with sample rules that limited nothing. A reinstall now starts clean; the app keeps no account, so nothing is lost on the server.
 - No new permission, network call or library.
+
+## Home screen widget (version 1.1.3)
+
+- New widget "SensorGuard": shows the guard status, whether the microphone is locked, whether the camera is blocked and whether device admin is active, exactly as the guard service last reported them, with the time of that report. Before the guard has reported anything it shows "Unavailable". It does not claim more than the guard knows, and it does not show which apps used the mic or camera.
+- Stored on this phone only (local preferences, not backed up because backup is off): the status name, the three yes/no values and the time. Nothing is sent anywhere.
+- No timer or background work: the widget redraws only when the guard service reports a change.
+- No new permission, network call or library. The widget receiver is exported because Android's launcher must send it update events; it handles only that action. Tapping the widget opens the app.
