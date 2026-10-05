@@ -71,3 +71,6 @@ After an in-app update installs, the app restarts and, on start, deletes every d
 
 - New "Permissions" card in Policy settings: lists each permission the app uses, the plain reason, and the live status read from Android when you open the screen (no timer). Tapping a row opens the matching Android page where you can allow or stop it. Normal permissions that cannot be switched off (see installed apps, internet, start after reboot) are shown as always allowed.
 - No new permission, network call or library.
+
+## Phone security check (v1.2.0)
+Settings has a "Phone security check" card. When the screen opens it reads, once, from Android itself: the security patch date (`Build.VERSION.SECURITY_PATCH`) and its age in days, with a warning line when it is more than 90 days old (our own threshold, not an Android rule), and the non-system apps that ask to install other apps and are currently allowed to (App Ops, Android 10 and newer; older versions show Unavailable). It uses the existing see-installed-apps permission. No new permission, no network call, no library, nothing runs in the background and nothing is stored or sent. If a value cannot be read it shows Unavailable.
