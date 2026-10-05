@@ -71,6 +71,7 @@ fun DashboardScreen(
     viewModel: SensorGuardViewModel,
     onNavigateToLogs: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onOpenTravelChecking: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -90,6 +91,10 @@ fun DashboardScreen(
             .testTag("dashboard_screen")
     ) {
         com.example.festival.FestivalBannerCard(modifier = Modifier.fillMaxWidth())
+        androidx.compose.material3.OutlinedButton(
+            onClick = onOpenTravelChecking,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("header_travel_checking")
+        ) { Text("Travel Checking", maxLines = 1) }
         // Top Header
         Row(
             modifier = Modifier.fillMaxWidth(),

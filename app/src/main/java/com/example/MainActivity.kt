@@ -146,7 +146,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                                 contentDescription = "Dashboard"
                             )
                         },
-                        label = { Text("Guard") },
+                        label = { Text("Guard", maxLines = 1, softWrap = false) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = NeonCyan,
                             selectedTextColor = NeonCyan,
@@ -164,7 +164,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                                 contentDescription = "Audit"
                             )
                         },
-                        label = { Text("Audit") },
+                        label = { Text("Audit", maxLines = 1, softWrap = false) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = NeonCyan,
                             selectedTextColor = NeonCyan,
@@ -182,7 +182,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                                 contentDescription = "Ledger"
                             )
                         },
-                        label = { Text("Ledger") },
+                        label = { Text("Ledger", maxLines = 1, softWrap = false) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = NeonCyan,
                             selectedTextColor = NeonCyan,
@@ -200,7 +200,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                                 contentDescription = "Policy"
                             )
                         },
-                        label = { Text("Policy") },
+                        label = { Text("Policy", maxLines = 1, softWrap = false) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = NeonCyan,
                             selectedTextColor = NeonCyan,
@@ -218,7 +218,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                                 contentDescription = "Report"
                             )
                         },
-                        label = { Text("Report") },
+                        label = { Text("Report", maxLines = 1, softWrap = false) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = NeonCyan,
                             selectedTextColor = NeonCyan,
@@ -231,18 +231,6 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
             }
         ) { innerPadding ->
             androidx.compose.foundation.layout.Column(Modifier.padding(innerPadding)) {
-            // Header entry: Travel Checking is one tap away from every screen.
-            androidx.compose.foundation.layout.Row(
-                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
-            ) {
-                Text("SensorGuard", style = androidx.compose.material3.MaterialTheme.typography.titleMedium, color = NeonCyan)
-                androidx.compose.material3.OutlinedButton(
-                    onClick = { selectedTab = if (selectedTab == 5) 0 else 5 },
-                    modifier = Modifier.testTag("header_travel_checking")
-                ) { Text(if (selectedTab == 5) "Close Travel Checking" else "Travel Checking") }
-            }
             AnimatedContent(
                 targetState = selectedTab,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -253,7 +241,8 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                     0 -> DashboardScreen(
                         viewModel = viewModel,
                         onNavigateToLogs = { selectedTab = 2 },
-                        onNavigateToSettings = { selectedTab = 3 }
+                        onNavigateToSettings = { selectedTab = 3 },
+                        onOpenTravelChecking = { selectedTab = 5 }
                     )
                     1 -> AppAuditScreen(
                         viewModel = viewModel
@@ -268,7 +257,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                     4 -> AppUsesReportScreen(
                         viewModel = viewModel
                     )
-                    5 -> CameraCheckScreen()
+                    5 -> CameraCheckScreen(onBack = { selectedTab = 0 })
                 }
             }
             }
