@@ -1,5 +1,10 @@
 # Security notes - SensorGuard
 
+## UI cleanup, step 2 (v1.2.3)
+- Ledger: the time and the three status badges (action, state, risk) no longer share one row, so a badge cannot wrap letter by letter. Badges and filter chips are one line.
+- Audit filter chips and the Report sub-tabs keep their labels on one line.
+- No new permission, library or network call.
+
 ## Standard header (v1.1.0)
 The header is the Netra standard: 56 dp, fixed, only the app name, the installed version (Android package info, "Unavailable" if missing) and the device date/time. All screens scroll; only this header and the bottom bar stay fixed. No new permission, network call or library. Every shown value needs a real evidence source, otherwise "Unavailable".
 
