@@ -75,22 +75,22 @@ fun AppUsesReportScreen(
                 Tab(
                     selected = selectedReportTab == 0,
                     onClick = { selectedReportTab = 0 },
-                    text = { Text("Overview") }
+                    text = { Text("Overview", maxLines = 1, softWrap = false) }
                 )
                 Tab(
                     selected = selectedReportTab == 1,
                     onClick = { selectedReportTab = 1 },
-                    text = { Text("App Profile") }
+                    text = { Text("App Profile", maxLines = 1, softWrap = false) }
                 )
                 Tab(
                     selected = selectedReportTab == 2,
                     onClick = { selectedReportTab = 2 },
-                    text = { Text("Permissions") }
+                    text = { Text("Permissions", maxLines = 1, softWrap = false) }
                 )
                 Tab(
                     selected = selectedReportTab == 3,
                     onClick = { selectedReportTab = 3 },
-                    text = { Text("Timeline") }
+                    text = { Text("Timeline", maxLines = 1, softWrap = false) }
                 )
             }
 
