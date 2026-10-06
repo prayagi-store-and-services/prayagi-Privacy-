@@ -77,6 +77,11 @@ class MainActivity : ComponentActivity() {
         com.example.update.UpdateAlert.handle(this, intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        Thread { com.example.update.AppUpdater.cleanStale(applicationContext) }.start()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Remove any installer file left from an in-app update (runs in the background).
