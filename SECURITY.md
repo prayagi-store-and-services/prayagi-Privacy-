@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Update alert (v1.2.5)
+
+A background check every 6 hours reads the same public latest.json the in-app updater already uses and, when a newer version exists, shows one notification. Tapping it runs the existing verified download (size and SHA-256 checked) and opens the Android installer. Adds the AndroidX WorkManager library (2.10.0) where it was not already present. No new permission, server or stored personal data.
+
 ## Policy screen cleanup (v1.2.4)
 - Policy screen: every card now has the same shape, colour and outline. Text in the usage count, app version, crash report, permissions and phone security cards had very loose line spacing; it now uses a normal spacing.
 - Developer names (DevicePolicyManager, setCameraDisabled, TelephonyCallback) are replaced by plain words. The meaning of each line is unchanged.
