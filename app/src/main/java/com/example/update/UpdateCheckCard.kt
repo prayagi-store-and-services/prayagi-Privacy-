@@ -32,10 +32,10 @@ fun UpdateCheckCard(modifier: Modifier = Modifier) {
     var busy by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }
     var newer by remember { mutableStateOf<AppRelease?>(null) }
-    Card(modifier = modifier.fillMaxWidth()) {
+    com.example.ui.components.PolicyCard(modifier) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("App version", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-            Text("Installed: " + AppUpdater.installedVersionName(context), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("App version", fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text("Installed: " + AppUpdater.installedVersionName(context), fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedButton(enabled = !busy, onClick = {
                 scope.launch {
                     busy = true
@@ -49,7 +49,7 @@ fun UpdateCheckCard(modifier: Modifier = Modifier) {
                     busy = false
                 }
             }) { Text(if (busy) "Checking..." else "Check for update") }
-            status?.let { Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface) }
+            status?.let { Text(it, fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurface) }
             newer?.let { r ->
                 Button(enabled = !busy, onClick = {
                     scope.launch {

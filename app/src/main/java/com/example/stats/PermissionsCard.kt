@@ -129,16 +129,16 @@ fun PermissionsCard(items: List<PermItem>, modifier: Modifier = Modifier) {
         lc?.addObserver(obs)
         onDispose { lc?.removeObserver(obs) }
     }
-    Card(modifier = modifier.fillMaxWidth()) {
+    com.example.ui.components.PolicyCard(modifier) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Permissions", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text("What the app uses and why. Tap a row to open its Android page.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Permissions", fontSize = 18.sp, lineHeight = 25.sp, fontWeight = FontWeight.Bold)
+            Text("What the app uses and why. Tap a row to open its Android page.", fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             items.forEach { item ->
                 val st = remember(tick) { item.status(context) }
                 val m = if (item.open != null) Modifier.fillMaxWidth().clickable { item.open.invoke(context) } else Modifier.fillMaxWidth()
                 Column(m, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(item.name + "  -  " + st, fontWeight = FontWeight.SemiBold)
-                    Text(item.reason, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(item.reason, fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

@@ -1,5 +1,10 @@
 # Security notes - SensorGuard
 
+## Policy screen cleanup (v1.2.4)
+- Policy screen: every card now has the same shape, colour and outline. Text in the usage count, app version, crash report, permissions and phone security cards had very loose line spacing; it now uses a normal spacing.
+- Developer names (DevicePolicyManager, setCameraDisabled, TelephonyCallback) are replaced by plain words. The meaning of each line is unchanged.
+- No new permission, library or network call.
+
 ## UI cleanup, step 2 (v1.2.3)
 - Ledger: the time and the three status badges (action, state, risk) no longer share one row, so a badge cannot wrap letter by letter. Badges and filter chips are one line.
 - Audit filter chips and the Report sub-tabs keep their labels on one line.

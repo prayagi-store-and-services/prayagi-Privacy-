@@ -26,16 +26,16 @@ import androidx.compose.ui.unit.sp
 fun UsageCountCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var enabled by remember { mutableStateOf(UsagePing.isEnabled(context)) }
-    Card(modifier = modifier.fillMaxWidth()) {
+    com.example.ui.components.PolicyCard(modifier) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = "Share anonymous usage count", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = "Share anonymous usage count", fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Switch(checked = enabled, onCheckedChange = { enabled = it; UsagePing.setEnabled(context, it) })
             }
             Text(
                 text = "Once a day the app adds 1 to a public counter so the Netra Eco website can show how many people use it. " +
                     "Nothing else is sent: no name, no device or install ID, no location, no battery or app data. You can turn this off any time.",
-                fontSize = 13.sp,
+                fontSize = 13.sp, lineHeight = 18.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
