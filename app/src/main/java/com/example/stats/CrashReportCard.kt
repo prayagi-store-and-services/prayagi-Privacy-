@@ -36,22 +36,22 @@ fun CrashReportCard(modifier: Modifier = Modifier) {
     var preview by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }
-    Card(modifier = modifier.fillMaxWidth()) {
+    com.example.ui.components.PolicyCard(modifier) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Crash report", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-            Text("If the app crashed, you can send the last crash to the developer. You see the exact text before anything is sent. It holds no name, email, location or files.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Crash report", fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text("If the app crashed, you can send the last crash to the developer. You see the exact text before anything is sent. It holds no name, email, location or files.", fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedButton(enabled = !busy, onClick = {
                 val p = CrashReporter.manualPreview(context)
                 if (p == null) status = "Unavailable: no crash is saved on this device, so there is nothing to send." else { status = null; preview = p }
             }) { Text("Send crash report") }
-            status?.let { Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface) }
+            status?.let { Text(it, fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurface) }
         }
     }
     preview?.let { text ->
         AlertDialog(
             onDismissRequest = { preview = null },
             title = { Text("This will be sent") },
-            text = { Text(text, fontSize = 12.sp, modifier = Modifier.verticalScroll(rememberScrollState())) },
+            text = { Text(text, fontSize = 12.sp, lineHeight = 17.sp, modifier = Modifier.verticalScroll(rememberScrollState())) },
             confirmButton = {
                 TextButton(enabled = !busy, onClick = {
                     scope.launch {
