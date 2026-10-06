@@ -583,7 +583,7 @@ fun PolicySettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Enables Android enterprise DevicePolicyManager to disable camera hardware system-wide when shield is locked.",
+                    text = "Lets Android switch the camera off for every app while the shield is locked.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -686,11 +686,11 @@ fun PolicySettingsScreen(
                 )
                 TransparencyBullet(
                     title = "Hardware Camera Blocking:",
-                    desc = "Utilizes official DevicePolicyManager.setCameraDisabled enterprise API to enforce genuine hardware level camera blocks."
+                    desc = "Uses the official Android device-admin camera block, which switches the camera off for every app while the shield is locked."
                 )
                 TransparencyBullet(
                     title = "Call Intelligence Exception:",
-                    desc = "Tracks TelephonyCallback state in real-time to immediately release mic when phone calls arrive so communication is never broken."
+                    desc = "Notices when a phone call begins and frees the microphone for it, so calls are never cut."
                 )
             }
         }
