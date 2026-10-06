@@ -88,23 +88,23 @@ fun SecurityCheckCard(modifier: Modifier = Modifier) {
             SecurityCheck(patch, patchAgeDays(patch, System.currentTimeMillis()), installAllowedApps(context))
         }
     }
-    Card(modifier = modifier.fillMaxWidth()) {
+    com.example.ui.components.PolicyCard(modifier) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Phone security check", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text("Phone security check", fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Text(
                 "Read once when you open this screen, from Android itself. Nothing runs in the background and nothing is sent anywhere.",
-                fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             val c = check
             if (c == null) {
-                Text("Checking...", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text("Checking...", fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurface)
             } else {
                 val patchLine = when {
                     c.patchDate.isNullOrBlank() || c.patchAgeDays == null -> "Security patch: Unavailable"
                     c.patchAgeDays > PATCH_WARN_DAYS -> "Security patch: " + c.patchDate + " (" + c.patchAgeDays + " days old). Warning: more than " + PATCH_WARN_DAYS + " days behind. Check Android system update."
                     else -> "Security patch: " + c.patchDate + " (" + c.patchAgeDays + " days old)"
                 }
-                Text(patchLine, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(patchLine, fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurface)
                 val apps = c.installApps
                 val installLine = when {
                     apps == null -> "Apps allowed to install other apps: Unavailable on this Android version"
@@ -112,7 +112,7 @@ fun SecurityCheckCard(modifier: Modifier = Modifier) {
                     else -> "Warning: " + apps.size + " app(s) are allowed to install other apps: " + apps.take(8).joinToString(", ") + (if (apps.size > 8) " and " + (apps.size - 8) + " more" else "") + ". Tap to review and switch off any you do not need."
                 }
                 Text(
-                    installLine, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface,
+                    installLine, fontSize = 13.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.clickable {
                         try {
                             context.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
