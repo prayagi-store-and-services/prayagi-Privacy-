@@ -74,7 +74,7 @@ fun UpdateCheckCard(modifier: Modifier = Modifier) {
                 ready?.let { f ->
                     if (!busy && f.exists()) {
                         Text("Downloaded. Deleted automatically after it is installed.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        OutlinedButton(onClick = { try { AppUpdater.install(context, f) } catch (e: Exception) { status = plainFailure(e, "Install failed.") } }) { Text("Install downloaded update") }
+                        OutlinedButton(onClick = { try { AppUpdater.install(context, f) } catch (e: Exception) { status = (e.message ?: "Install failed.") } }) { Text("Install downloaded update") }
                     }
                 }
             }
