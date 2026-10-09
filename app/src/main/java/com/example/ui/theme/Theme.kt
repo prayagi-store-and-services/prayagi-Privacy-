@@ -35,6 +35,26 @@ private val DarkColorScheme = darkColorScheme(
     outline = CyberBorder
 )
 
+private val NewDarkColorScheme = darkColorScheme(
+    primary = Color(0xFFB39DDB), onPrimary = Color(0xFF1A0F33),
+    secondary = Color(0xFF80CBC4), onSecondary = Color.Black,
+    tertiary = AmberWarning, onTertiary = Color.Black,
+    error = CrimsonAlert, onError = Color.White,
+    background = Color(0xFF120E1F), onBackground = Color(0xFFEDE7F6),
+    surface = Color(0xFF1B1530), onSurface = Color(0xFFEDE7F6),
+    surfaceVariant = Color(0xFF261E42), onSurfaceVariant = Color(0xFFCFC5E8)
+)
+
+private val NewLightColorScheme = lightColorScheme(
+    primary = Color(0xFF4527A0), onPrimary = Color.White,
+    secondary = Color(0xFF00695C), onSecondary = Color.White,
+    tertiary = AmberWarning, onTertiary = Color.Black,
+    error = CrimsonAlert, onError = Color.White,
+    background = Color(0xFFF6F3FB), onBackground = Color(0xFF1C1530),
+    surface = Color.White, onSurface = Color(0xFF1C1530),
+    surfaceVariant = Color(0xFFE9E2F6), onSurfaceVariant = Color(0xFF4A4060)
+)
+
 private val LightColorScheme = lightColorScheme(
     primary = NeonCyanDark,
     onPrimary = Color.White,
@@ -63,7 +83,9 @@ fun MyApplicationTheme(
     dynamicColor: Boolean = false, // Keep consistent cyber privacy aesthetic
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = if (RedesignGate.isOn()) {
+        if (darkTheme) NewDarkColorScheme else NewLightColorScheme
+    } else if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
 
     if (!view.isInEditMode) {
