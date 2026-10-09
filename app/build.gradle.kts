@@ -75,11 +75,11 @@ googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.W
 
 // Site blocking list: built from the public sources at build time (see scripts/build_blocklist.py and
 // docs/THIRD_PARTY_LISTS.md). Needs internet and python3. Skipped when the file is already there.
-val blocklistAsset = layout.projectDirectory.file("src/main/assets/blocklist/domains.txt.gz")
 tasks.register<Exec>("generateBlocklist") {
-  onlyIf { !blocklistAsset.asFile.exists() }
-  workingDir = rootDir
-  commandLine("python3", "scripts/build_blocklist.py", blocklistAsset.asFile.absolutePath)
+  val out = layout.projectDirectory.file("src/main/assets/blocklist/domains.txt.gz").asFile
+  val script = rootProject.layout.projectDirectory.file("scripts/build_blocklist.py").asFile
+  onlyIf { !out.exists() }
+  commandLine("python3", script.absolutePath, out.absolutePath)
 }
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }.configureEach { dependsOn("generateBlocklist") }
 
