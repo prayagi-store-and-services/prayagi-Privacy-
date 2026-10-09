@@ -28,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SiteBlockingScreen(onBack: () -> Unit) {
@@ -39,6 +42,9 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
     var error by remember { mutableStateOf(prefs.lastError) }
     var blockedToday by remember { mutableStateOf(prefs.blockedToday()) }
     var blockedTotal by remember { mutableStateOf(prefs.blockedTotal) }
+    var updateMsg by remember { mutableStateOf<String?>(null) }
+    var updating by remember { mutableStateOf(false) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     val consent = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         if (r.resultCode == Activity.RESULT_OK) {
@@ -117,6 +123,38 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
                 "Questions for sites that are not blocked go to the DNS server your phone already uses.",
             style = MaterialTheme.typography.bodySmall
         )
+        Text("List updates (optional)", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "The app ships with a built-in list and never updates it by itself. If you tap the button, it contacts github.com over HTTPS, " +
+                "downloads one list file from this project's releases, checks its checksum, and only then uses it. GitHub sees your phone's " +
+                "internet address, as with any download. Nothing about you or your browsing is sent.",
+            style = MaterialTheme.typography.bodySmall
+        )
+        val last = BlocklistUpdater.lastUpdated(context)
+        Text(
+            if (last > 0L) "Using an updated list from " + java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(last))
+            else "Using the built-in list.",
+            style = MaterialTheme.typography.bodySmall
+        )
+        OutlinedButton(
+            enabled = !updating,
+            modifier = Modifier.testTag("siteblock_update"),
+            onClick = {
+                updating = true; updateMsg = "Updating..."
+                scope.launch {
+                    val r = withContext(Dispatchers.IO) { BlocklistUpdater.update(context) }
+                    updating = false
+                    updateMsg = when (r) {
+                        is BlocklistUpdater.Result.Ok -> "Updated: " + r.names + " names." + (if (enabled) " Blocking was restarted." else "")
+                        is BlocklistUpdater.Result.Failed -> r.reason
+                    }
+                    if (r is BlocklistUpdater.Result.Ok && enabled) {
+                        SiteBlockVpnService.stop(context); prefs.enabled = true; SiteBlockVpnService.start(context)
+                    }
+                }
+            }
+        ) { Text("Update lists now") }
+        updateMsg?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         Text("Lists and credits", style = MaterialTheme.typography.titleMedium)
         Text(
             "Block list built from: BlockList Project (github.com/blocklistproject/Lists, MIT licence, adult and gambling lists) " +
