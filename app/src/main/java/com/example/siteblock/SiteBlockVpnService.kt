@@ -49,9 +49,9 @@ class SiteBlockPrefs(context: Context) {
     private fun today(): String = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
 }
 
-/** Loads the bundled list (assets/blocklist/domains.txt.gz) once and keeps a fast hash copy in the app's private folder. */
+/** Loads the bundled list (assets/blocklist/domains.bin) once and keeps a fast hash copy in the app's private folder. */
 object SiteBlockLoader {
-    const val ASSET = "blocklist/domains.txt.gz"
+    const val ASSET = "blocklist/domains.bin"
     private const val CACHE = "blocklist_v1.bin"
     private const val STAMP = "blocklist_v1.stamp"
 
