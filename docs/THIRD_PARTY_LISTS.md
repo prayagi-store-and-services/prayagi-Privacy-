@@ -13,7 +13,7 @@ SensorGuard's "Block adult and gambling sites" uses a bundled list of domain nam
 - Source: https://dsi.ut-capitole.fr/blacklists/ (Universite Toulouse Capitole). File used: gambling.tar.gz, member `gambling/domains`.
 - Licence: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0), https://creativecommons.org/licenses/by-sa/4.0/ (the UT1 page links this licence).
 - Credit: "UT1 blacklists, Universite Toulouse Capitole, https://dsi.ut-capitole.fr/blacklists/".
-- Changes by us: same as above (names only, merged, parent-reduced, sorted, compressed). The merged list file is therefore an adapted work: the data file `blocklist/domains.txt.gz` is offered under CC BY-SA 4.0 for the UT1 part. The app code stays under the repository's own licence; the list is a separate data file.
+- Changes by us: same as above (names only, merged, parent-reduced, sorted, compressed). The merged list file is therefore an adapted work: the data file `blocklist/domains.bin` is offered under CC BY-SA 4.0 for the UT1 part. The app code stays under the repository's own licence; the list is a separate data file.
 - The UT1 adult category is NOT included in this version (4.6 million names, 17 MB); it can be switched on in the build script (`INCLUDE_UT1_ADULT=1`) after a size decision.
 
 ## Freshness
