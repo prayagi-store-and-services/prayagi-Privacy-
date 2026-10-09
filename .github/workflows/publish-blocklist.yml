@@ -1,0 +1,32 @@
+name: Publish site-block list
+# Builds the merged list and publishes it as a pre-release file the app can download when the user taps "Update lists now".
+# It is a pre-release so it never becomes the "latest" app release that the app's own update check reads.
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '17 2 * * 1'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build list
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          python3 scripts/build_blocklist.py out/domains.bin
+          (cd out && sha256sum domains.bin | cut -d' ' -f1 > domains.bin.sha256)
+          ls -l out
+      - name: Publish to the blocklist-latest pre-release
+        run: |
+          set -euo pipefail
+          if ! gh release view blocklist-latest >/dev/null 2>&1; then
+            gh release create blocklist-latest --prerelease --title "Site-block list (data only)" \
+              --notes "Data file for SensorGuard's optional list update. Built from the BlockList Project and UT1 lists; see docs/THIRD_PARTY_LISTS.md for licences. Not an app release."
+          fi
+          gh release upload blocklist-latest out/domains.bin out/domains.bin.sha256 out/SOURCES.txt --clobber
