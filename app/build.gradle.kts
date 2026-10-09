@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.sensorguard.prvsec"
     minSdk = 24
     targetSdk = 36
-    versionCode = 25
-    versionName = "1.2.9"
+    versionCode = 26
+    versionName = "1.3.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -72,6 +72,16 @@ secrets {
 }
 
 googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
+
+// Site blocking list: built from the public sources at build time (see scripts/build_blocklist.py and
+// docs/THIRD_PARTY_LISTS.md). Needs internet and python3. Skipped when the file is already there.
+val blocklistAsset = layout.projectDirectory.file("src/main/assets/blocklist/domains.txt.gz")
+tasks.register<Exec>("generateBlocklist") {
+  onlyIf { !blocklistAsset.asFile.exists() }
+  workingDir = rootDir
+  commandLine("python3", "scripts/build_blocklist.py", blocklistAsset.asFile.absolutePath)
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }.configureEach { dependsOn("generateBlocklist") }
 
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
