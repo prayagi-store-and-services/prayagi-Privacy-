@@ -17,8 +17,8 @@ android {
     applicationId = "com.aistudio.sensorguard.prvsec"
     minSdk = 24
     targetSdk = 36
-    versionCode = 26
-    versionName = "1.3.0"
+    versionCode = 27
+    versionName = "1.3.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -76,7 +76,7 @@ googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.W
 // Site blocking list: built from the public sources at build time (see scripts/build_blocklist.py and
 // docs/THIRD_PARTY_LISTS.md). Needs internet and python3. Skipped when the file is already there.
 tasks.register<Exec>("generateBlocklist") {
-  val out = layout.projectDirectory.file("src/main/assets/blocklist/domains.txt.gz").asFile
+  val out = layout.projectDirectory.file("src/main/assets/blocklist/domains.bin").asFile
   val script = rootProject.layout.projectDirectory.file("scripts/build_blocklist.py").asFile
   onlyIf { !out.exists() }
   commandLine("python3", script.absolutePath, out.absolutePath)
