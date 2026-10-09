@@ -72,6 +72,7 @@ fun DashboardScreen(
     onNavigateToLogs: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onOpenTravelChecking: () -> Unit = {},
+    onOpenSiteBlocking: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -95,6 +96,10 @@ fun DashboardScreen(
             onClick = onOpenTravelChecking,
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("header_travel_checking")
         ) { Text("Travel Checking", maxLines = 1) }
+        androidx.compose.material3.OutlinedButton(
+            onClick = onOpenSiteBlocking,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("header_site_blocking")
+        ) { Text("Block adult and gambling sites", maxLines = 1) }
         // Top Header
         Row(
             modifier = Modifier.fillMaxWidth(),
