@@ -59,14 +59,20 @@ object SiteBlockLoader {
         val dir = context.filesDir
         val cache = File(dir, CACHE)
         val stamp = File(dir, STAMP)
-        val present = try { context.assets.open(ASSET).use { true } } catch (e: Exception) { false }
+        val upd = BlocklistUpdater.updateFile(context)
+        val useUpdate = upd.exists() && upd.length() > 0
+        val present = useUpdate || try { context.assets.open(ASSET).use { true } } catch (e: Exception) { false }
         if (!present) return null
-        val wanted = "app" + com.example.BuildConfig.VERSION_CODE
+        val wanted = if (useUpdate) "upd" + upd.lastModified() else "app" + com.example.BuildConfig.VERSION_CODE
         if (cache.exists() && stamp.exists() && stamp.readText() == wanted) {
             val cached = try { cache.inputStream().use { BlockSetFile.read(it) } } catch (e: Exception) { null }
             if (cached != null) return BlockSet(cached)
         }
-        val hashes = context.assets.open(ASSET).use { ListParser.hashesFrom(it, gzip = true) }
+        val hashes = try {
+            (if (useUpdate) upd.inputStream() else context.assets.open(ASSET)).use { ListParser.hashesFrom(it, gzip = true) }
+        } catch (e: Exception) {
+            if (useUpdate) { upd.delete(); return load(context) } else return null
+        }
         if (hashes.isEmpty()) return null
         try {
             val tmp = File(dir, "$CACHE.tmp")
