@@ -47,6 +47,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.platform.testTag
 import com.example.service.AppRiskScanner
 import com.example.camcheck.CameraCheckScreen
+import com.example.siteblock.SiteBlockingScreen
 import com.example.ui.screens.AppAuditScreen
 import com.example.ui.screens.AppUsesReportScreen
 import com.example.ui.screens.DashboardScreen
@@ -253,7 +254,8 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                         viewModel = viewModel,
                         onNavigateToLogs = { selectedTab = 2 },
                         onNavigateToSettings = { selectedTab = 3 },
-                        onOpenTravelChecking = { selectedTab = 5 }
+                        onOpenTravelChecking = { selectedTab = 5 },
+                        onOpenSiteBlocking = { selectedTab = 6 }
                     )
                     1 -> AppAuditScreen(
                         viewModel = viewModel
@@ -269,6 +271,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                         viewModel = viewModel
                     )
                     5 -> CameraCheckScreen(onBack = { selectedTab = 0 })
+                    6 -> SiteBlockingScreen(onBack = { selectedTab = 0 })
                 }
             }
             }

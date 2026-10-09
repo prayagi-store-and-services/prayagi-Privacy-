@@ -1,5 +1,15 @@
 # Security notes - SensorGuard
 
+## Site blocking (v1.3.0)
+
+New: the app can block adult and gambling websites on the phone. It uses a local VPN that handles only DNS questions (the "what is the address of this site" step). A question for a listed site is answered "does not exist"; every other question goes unchanged to the DNS server the phone already uses. Nothing else is read, no website names are saved, and nothing is sent to any server by this feature. Only two counters (blocked today, blocked in total) are kept on the phone.
+
+New permission: Android's VPN permission (BIND_VPN_SERVICE on the app's own service). Android shows its own one-time "Allow VPN" dialog; blocking stays off until the user turns it on and can be turned off at any time. The VPN routes only one made-up DNS address, not the phone's traffic.
+
+Lists: the list is built at build time from the BlockList Project (MIT / Unlicense) and the UT1 gambling list (CC BY-SA 4.0), reduced to domain names and bundled in the app. Credits and licence terms: docs/THIRD_PARTY_LISTS.md. A user allow list overrides the block list.
+
+Honest limits: this blocks by website name only. A browser using its own secure DNS, a Private DNS setting, another VPN app or a site that is not on the list can bypass it. Only one VPN can run at a time on Android.
+
 ## Report delivery fix (v1.2.9)
 
 Crash and feedback reports from the app now send the website address as the origin header, so the report service accepts them. Reports that could not be delivered before (they stay saved on the phone and retry at the next start) will now go through. Report contents, the stored file and the opt-in text are unchanged. No new permission, library or server.

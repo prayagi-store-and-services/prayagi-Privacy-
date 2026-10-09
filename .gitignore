@@ -16,3 +16,6 @@
 local.properties
 .env
 debug.keystore
+
+# Generated at build time (scripts/build_blocklist.py)
+/app/src/main/assets/blocklist/

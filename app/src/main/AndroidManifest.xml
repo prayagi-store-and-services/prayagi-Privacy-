@@ -46,6 +46,19 @@
         </service>
 
         <service
+            android:name=".siteblock.SiteBlockVpnService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="local_dns_site_blocking" />
+        </service>
+
+        <service
             android:name=".service.SensorGuardTileService"
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
