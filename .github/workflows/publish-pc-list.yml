@@ -1,0 +1,70 @@
+name: Publish PC block list (Netra Privacy Guard)
+# Builds the PC browser-extension list (domains-pc.h64) from the published
+# domains.bin plus the BlockList Project ads list, and uploads it to the same
+# blocklist-latest pre-release. Runs after "Publish site-block list" finishes,
+# weekly as a backstop, or on demand. scripts/pc_build_h64.py --selftest is the
+# green gate: no file is published unless membership, allow-list stripping and
+# sorting all verify.
+on:
+  workflow_run:
+    workflows: ["Publish site-block list"]
+    types: [completed]
+  schedule:
+    - cron: '47 3 * * 2'   # weekly backstop, a day after the main list rebuild
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  publish:
+    # only run when the upstream list build succeeded (or on manual/weekly runs)
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the published phone list + verify its sha256
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          base="https://github.com/${{ github.repository }}/releases/download/blocklist-latest"
+          curl -fsSL "$base/domains.bin" -o out/domains.bin
+          curl -fsSL "$base/domains.bin.sha256" -o out/domains.bin.sha256
+          want=$(cut -d' ' -f1 out/domains.bin.sha256)
+          got=$(sha256sum out/domains.bin | cut -d' ' -f1)
+          test "$want" = "$got"
+          echo "input verified: $got"
+      - name: Download the ads list and verify the source licence (MIT or Unlicense)
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://raw.githubusercontent.com/blocklistproject/Lists/master/ads.txt" -o out/ads.txt
+          head -5 out/ads.txt
+          lic=$(curl -fsSL "https://api.github.com/repos/blocklistproject/Lists/license" | python3 -c "import json,sys;print(json.load(sys.stdin)['license']['spdx_id'])")
+          echo "blocklistproject/Lists licence: $lic"
+          case "$lic" in MIT|Unlicense) : ;; *) echo "unexpected licence - refusing"; exit 1 ;; esac
+      - name: Build + self-test the PC list (green gate)
+        run: python3 scripts/pc_build_h64.py out/domains.bin out/domains-pc.h64 --ads out/ads.txt --selftest
+      - name: Cross-promo card data (extension <-> mobile app)
+        run: |
+          set -euo pipefail
+          cat > out/crosspromo.json <<'JSON'
+          {
+            "mobile": {
+              "name": "Privacy Guard",
+              "text": "The Privacy Guard app protects your Android phone the same way - site blocking, privacy guard and more.",
+              "url": "https://github.com/prayagi-store-and-services/prayagi-Privacy-/releases/latest",
+              "linkText": "Get the mobile app (free)"
+            },
+            "pc": {
+              "name": "Netra Privacy Guard for PC",
+              "text": "The same protection exists for your computer as a browser extension.",
+              "url": "https://github.com/prayagi-store-and-services/netra-privacy-guard",
+              "linkText": "Get the PC version (free)"
+            }
+          }
+          JSON
+      - name: Publish to the blocklist-latest pre-release
+        run: |
+          set -euo pipefail
+          gh release upload blocklist-latest out/domains-pc.h64 out/domains-pc.h64.sha256 out/crosspromo.json --clobber
