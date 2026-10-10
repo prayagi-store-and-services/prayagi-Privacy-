@@ -37,10 +37,10 @@ class SiteBlockPrefs(context: Context) {
     var lastError: String?
         get() = p.getString("last_error", null)
         set(v) { p.edit().putString("last_error", v).apply() }
-    /** Optional daily list update. Default OFF: nothing is downloaded unless the user turns this on. */
-    var autoUpdate: Boolean
-        get() = p.getBoolean("auto_update", false)
-        set(v) { p.edit().putBoolean("auto_update", v).apply() }
+    /** Hours between automatic list updates while on mobile data. Wi-Fi updates are automatic and fixed. */
+    var mobileHours: Int
+        get() = AutoListUpdate.cleanMobileHours(p.getInt("mobile_hours", AutoListUpdate.DEFAULT_MOBILE_HOURS))
+        set(v) { p.edit().putInt("mobile_hours", AutoListUpdate.cleanMobileHours(v)).apply() }
     var autoLastTry: Long
         get() = p.getLong("auto_last_try", 0L)
         set(v) { p.edit().putLong("auto_last_try", v).apply() }
