@@ -44,8 +44,7 @@ object BankGuard {
         Bank("kvb", "Karur Vysya Bank", "kvb", listOf("kvb.bank.in", "kvb.co.in")),
         Bank("nainital", "Nainital Bank", "nainitalbank", listOf("nainitalbank.bank.in", "nainitalbank.co.in")),
         Bank("sib", "South Indian Bank", "southindianbank", listOf("southindianbank.bank.in", "southindianbank.com")),
-        Bank("tmb", "Tamilnad Mercantile Bank", "tmb", listOf("tmb.bank.in", "tmb.in")),
-        Bank("bankin", "a .bank.in registered bank", "\u0000", listOf())
+        Bank("tmb", "Tamilnad Mercantile Bank", "tmb", listOf("tmb.bank.in", "tmb.in"))
     )
 
     private val SECOND_LEVEL = setOf("co.in", "org.in", "net.in", "com.in", "gen.in", "firm.in", "ind.in", "co.uk", "org.uk", "com.au", "net.au", "com.np", "com.pk", "co.nz", "com.bd", "co.lk", "com.sg", "com.my", "co.ae", "com.sa", "com.ng", "co.ke", "co.za")
