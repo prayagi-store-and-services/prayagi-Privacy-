@@ -11,12 +11,12 @@ class SensorGuardAdminReceiver : DeviceAdminReceiver() {
 
     override fun onEnabled(context: Context, intent: Intent) {
         super.onEnabled(context, intent)
-        Toast.makeText(context, "SensorGuard Hardware Policy Activated", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "${com.example.Brand.name} Hardware Policy Activated", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDisabled(context: Context, intent: Intent) {
         super.onDisabled(context, intent)
-        Toast.makeText(context, "SensorGuard Hardware Policy Deactivated", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "${com.example.Brand.name} Hardware Policy Deactivated", Toast.LENGTH_SHORT).show()
     }
 
     companion object {
