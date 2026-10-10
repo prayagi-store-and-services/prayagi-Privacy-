@@ -63,7 +63,7 @@ import com.example.service.SensorGuardService
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 
-class MainActivity : ComponentActivity() {
+open class MainActivity : ComponentActivity() {
 
     private val viewModel: SensorGuardViewModel by viewModels {
         val app = application as SensorGuardApplication
