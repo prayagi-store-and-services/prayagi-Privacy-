@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Region guard (v1.4.4)
+
+The app refuses to open when the phone's SIM or network country is on a built-in block list (PK, BD, AF, CN, KP). The check runs only on the phone, uses no permission, no network call and no IP lookup, and nothing is stored or sent. With no signal, or an Indian SIM, it never blocks. It is a deterrent, not foolproof: removing the SIM or changing the language region bypasses it.
+
 ## Site blocking (v1.3.0)
 
 New: the app can block adult and gambling websites on the phone. It uses a local VPN that handles only DNS questions (the "what is the address of this site" step). A question for a listed site is answered "does not exist"; every other question goes unchanged to the DNS server the phone already uses. Nothing else is read, no website names are saved, and nothing is sent to any server by this feature. Only two counters (blocked today, blocked in total) are kept on the phone.
