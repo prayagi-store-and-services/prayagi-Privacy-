@@ -70,7 +70,7 @@ internal fun batteryStatus(context: Context): String = try {
 internal fun appPermissions(): List<PermItem> = listOf(
     PermItem(
         "Microphone",
-        "Used to hold the microphone hardware while the screen is off so other apps cannot listen. SensorGuard does not record or send any sound. Tap to open the Android page where you can allow or stop it.",
+        "Used to hold the microphone hardware while the screen is off so other apps cannot listen. ${com.example.Brand.name} does not record or send any sound. Tap to open the Android page where you can allow or stop it.",
         { runtimeStatus(it, android.Manifest.permission.RECORD_AUDIO) },
         { it.startActivity(appSettingsIntent(it)) }
     ),
@@ -106,7 +106,7 @@ internal fun appPermissions(): List<PermItem> = listOf(
     ),
     PermItem(
         "Install apps",
-        "Used only when you tap Install on an update, so Android can install the new SensorGuard file. Tap to open the Android page where you can allow or stop it.",
+        "Used only when you tap Install on an update, so Android can install the new ${com.example.Brand.name} file. Tap to open the Android page where you can allow or stop it.",
         { installStatus(it) },
         { openInstallSettings(it) }
     ),
