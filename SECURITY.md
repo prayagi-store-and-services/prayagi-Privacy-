@@ -121,3 +121,10 @@ Settings has a "Phone security check" card. When the screen opens it reads, once
 - Travel Checking is now a button at the top of the Guard tab, and the Travel Checking screen has its own Back button.
 - Bottom bar names stay on one line.
 - No new permission, library or network call.
+
+## Site-block list updates (version 1.4.0)
+- Optional. "Update lists now" and the daily switch "Keep the block list updated" (default off) download one list file from this project's GitHub releases over HTTPS. GitHub sees the phone's internet address, as for any download. Nothing about the user or their browsing is sent.
+- Each download is checked against the published SHA-256, a size limit and a parse test. If anything fails, the old list stays in use and the screen shows the reason.
+- The daily job uses Android's background work scheduler (no new permission). It does nothing while the switch is off.
+- Phishing, scam and ransomware names (BlockList Project, MIT) arrive only through a list update. Android's Safe Browsing data is not used: it is Google's and is not given to apps as a list.
+- Not tested on every phone; tested in automated tests and an emulator.
