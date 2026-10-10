@@ -1,6 +1,7 @@
 package com.example.siteblock
 
 import android.content.Context
+import android.net.ConnectivityManager
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -8,55 +9,83 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import java.util.concurrent.TimeUnit
 
 /**
- * Optional "security patch" style update for the block list. The list is data, so it can arrive without an app update.
- * It is OFF until the user turns it on. When on, Android runs it about once a day when the phone is online
- * (Android may delay it in battery saver). It uses the same checked download as the "Update lists now" button.
+ * Automatic block list update. It is always on and has no off switch: the list is data, so protection can improve
+ * without a new app version. On Wi-Fi (or any unmetered network) it runs by itself about every 12 hours.
+ * On mobile data it runs at the interval the user picks (default 24 hours). Both use the same checked download
+ * as the "Update lists now" button. Android may delay a run in battery saver.
  */
 object AutoListUpdate {
-    const val WORK = "siteblock_list_update"
+    const val WIFI_WORK = "siteblock_list_update_wifi"
+    const val MOBILE_WORK = "siteblock_list_update_mobile"
+    const val WIFI_HOURS = 12
+    const val DEFAULT_MOBILE_HOURS = 24
+    val MOBILE_CHOICES = listOf(6, 12, 24, 48, 72)
+    const val KEY_KIND = "kind"
 
-    fun setOn(context: Context, on: Boolean) {
-        val prefs = SiteBlockPrefs(context)
-        prefs.autoUpdate = on
+    /** Only the listed choices are valid. Anything else falls back to the default. Pure, unit tested. */
+    fun cleanMobileHours(h: Int): Int = if (h in MOBILE_CHOICES) h else DEFAULT_MOBILE_HOURS
+
+    /** Schedules both automatic updates. Safe to call again at any time. */
+    fun ensureScheduled(context: Context) {
         val wm = WorkManager.getInstance(context.applicationContext)
-        if (on) {
-            val req = PeriodicWorkRequestBuilder<AutoListUpdateWorker>(24, TimeUnit.HOURS)
-                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-                .build()
-            wm.enqueueUniquePeriodicWork(WORK, ExistingPeriodicWorkPolicy.KEEP, req)
-        } else {
-            wm.cancelUniqueWork(WORK)
-        }
+        val wifi = PeriodicWorkRequestBuilder<AutoListUpdateWorker>(WIFI_HOURS.toLong(), TimeUnit.HOURS)
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED).build())
+            .setInputData(workDataOf(KEY_KIND to "wifi"))
+            .build()
+        wm.enqueueUniquePeriodicWork(WIFI_WORK, ExistingPeriodicWorkPolicy.KEEP, wifi)
+        scheduleMobile(context, SiteBlockPrefs(context).mobileHours, ExistingPeriodicWorkPolicy.KEEP)
+    }
+
+    /** The user picked a new mobile data interval. */
+    fun setMobileHours(context: Context, hours: Int) {
+        val h = cleanMobileHours(hours)
+        SiteBlockPrefs(context).mobileHours = h
+        scheduleMobile(context, h, ExistingPeriodicWorkPolicy.UPDATE)
+    }
+
+    private fun scheduleMobile(context: Context, hours: Int, policy: ExistingPeriodicWorkPolicy) {
+        val req = PeriodicWorkRequestBuilder<AutoListUpdateWorker>(cleanMobileHours(hours).toLong(), TimeUnit.HOURS)
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .setInputData(workDataOf(KEY_KIND to "mobile"))
+            .build()
+        WorkManager.getInstance(context.applicationContext).enqueueUniquePeriodicWork(MOBILE_WORK, policy, req)
     }
 
     /** What the screen says about the automatic update. Pure, unit tested. Times are epoch milliseconds, 0 = never. */
-    fun statusText(on: Boolean, lastUpdatedMs: Long, lastTryMs: Long, lastFailure: String?, fmt: (Long) -> String): String {
-        if (!on) return "Automatic update is off. The built-in list stays as it is until you tap the button."
-        val tried = if (lastTryMs > 0L) "Last automatic try: " + fmt(lastTryMs) + ". " else "Has not run yet (Android picks the time, about once a day). "
+    fun statusText(mobileHours: Int, lastUpdatedMs: Long, lastTryMs: Long, lastFailure: String?, fmt: (Long) -> String): String {
+        val plan = "On Wi-Fi the list updates by itself about every " + WIFI_HOURS + " hours. On mobile data it updates about every " +
+            cleanMobileHours(mobileHours) + " hours. "
+        val tried = if (lastTryMs > 0L) "Last automatic try: " + fmt(lastTryMs) + ". " else "Has not run yet (Android picks the exact time). "
         val result = when {
             lastTryMs == 0L -> ""
             lastFailure != null -> "It did not work: " + lastFailure
             else -> "It worked."
         }
         val using = if (lastUpdatedMs > 0L) " Using a list from " + fmt(lastUpdatedMs) + "." else " Using the built-in list."
-        return tried + result + using
+        return plan + tried + result + using
     }
 }
 
 class AutoListUpdateWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
+        val kind = inputData.getString(AutoListUpdate.KEY_KIND) ?: "mobile"
+        if (kind == "mobile") {
+            // On Wi-Fi the Wi-Fi job already does the update, so the mobile data timer does not use data twice.
+            val cm = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            if (cm != null && !cm.isActiveNetworkMetered) return Result.success()
+        }
         val prefs = SiteBlockPrefs(applicationContext)
-        if (!prefs.autoUpdate) return Result.success()
         val r = BlocklistUpdater.update(applicationContext)
         prefs.autoLastTry = System.currentTimeMillis()
         prefs.autoLastFailure = when (r) {
             is BlocklistUpdater.Result.Ok -> null
             is BlocklistUpdater.Result.Failed -> r.reason
         }
-        // The new list is used the next time blocking starts. A failure keeps the old list; the next daily run tries again.
+        // The new list is used the next time blocking starts. A failure keeps the old list; the next run tries again.
         return Result.success()
     }
 }
