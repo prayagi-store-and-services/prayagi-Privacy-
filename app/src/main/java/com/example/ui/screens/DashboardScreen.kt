@@ -374,9 +374,13 @@ fun DashboardScreen(
                     }
                 }
 
+                com.example.Brand.rePinNote(System.currentTimeMillis())?.let {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(text = it, style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "💡 Quick Access: Add the SensorGuard Quick Settings Tile from your Android notification shade for 1-tap toggling anytime.",
+                    text = "💡 Quick Access: Add the ${com.example.Brand.name} Quick Settings Tile from your Android notification shade for 1-tap toggling anytime.",
                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
