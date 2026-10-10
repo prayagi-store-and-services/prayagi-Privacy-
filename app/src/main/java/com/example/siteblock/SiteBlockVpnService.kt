@@ -135,6 +135,33 @@ class SiteBlockVpnService : VpnService() {
         } else startForeground(NOTIF_ID, n)
     }
 
+    private val warnedBases = HashSet<String>()
+
+    /** Loud warning when a name looks like an Indian bank but is not one. Once per name per run. The name is not stored. */
+    private fun warnIfFakeBank(rawName: String) {
+        try {
+            val name = DomainNames.normalize(rawName) ?: return
+            val bank = BankGuard.lookalike(name) ?: return
+            val base = BankGuard.baseDomain(name)
+            if (warnedBases.size > 500) warnedBases.clear()
+            if (!warnedBases.add(base)) return
+            val nm = getSystemService(NotificationManager::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                nm.createNotificationChannel(NotificationChannel(BANK_CHANNEL, "Fake bank warnings", NotificationManager.IMPORTANCE_HIGH))
+            }
+            val n = NotificationCompat.Builder(this, BANK_CHANNEL)
+                .setContentTitle("Possible fake bank site")
+                .setContentText(base + " looks like " + bank.name + " but is not an official bank address.")
+                .setStyle(NotificationCompat.BigTextStyle().bigText(base + " looks like " + bank.name + " but is not an official bank address. Do not enter passwords, PINs or card details there. Real Indian banks use addresses ending in .bank.in or their usual bank website."))
+                .setSmallIcon(android.R.drawable.ic_dialog_alert)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true).build()
+            nm.notify(BANK_NOTIF_BASE + (base.hashCode() and 0xFFFF), n)
+        } catch (e: Exception) {
+            // Notifications may be off; the name is still never blocked or stored.
+        }
+    }
+
     private fun phoneDnsServer(): InetAddress? {
         return try {
             val cm = getSystemService(ConnectivityManager::class.java)
@@ -190,6 +217,7 @@ class SiteBlockVpnService : VpnService() {
                         synchronized(output) { output.write(answer) }
                         pending.incrementAndGet()
                     } else {
+                        warnIfFakeBank(q.name)
                         pool.execute { forward(q, upstream, output) }
                     }
                 }
@@ -247,6 +275,8 @@ class SiteBlockVpnService : VpnService() {
         const val ACTION_STOP = "com.example.siteblock.STOP"
         private const val CHANNEL = "site_block"
         private const val NOTIF_ID = 4107
+        private const val BANK_CHANNEL = "fake_bank"
+        private const val BANK_NOTIF_BASE = 5000
         private const val VPN_ADDR = "10.111.222.1"
         private const val FAKE_DNS = "10.111.222.2"
 
