@@ -24,6 +24,7 @@ class SensorGuardApplication : Application() {
 
         createNotificationChannels()
         try { Brand.applyLauncherName(this) } catch (_: Throwable) { }
+        try { com.example.siteblock.AutoListUpdate.ensureScheduled(this) } catch (_: Throwable) { }
     }
 
     private fun createNotificationChannels() {
