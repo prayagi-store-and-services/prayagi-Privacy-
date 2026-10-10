@@ -72,7 +72,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         Text("Block adult and gambling sites", style = MaterialTheme.typography.headlineSmall)
         Text(
             "Uses a list of known adult and gambling websites kept on this phone. When an app or browser asks for the " +
-                "address of a listed site, SensorGuard answers that it does not exist. Everything stays on the phone.",
+                "address of a listed site, ${com.example.Brand.name} answers that it does not exist. Everything stays on the phone.",
             style = MaterialTheme.typography.bodyMedium
         )
         Card(Modifier.fillMaxWidth()) {
@@ -98,7 +98,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         Text("How site blocking works", style = MaterialTheme.typography.titleMedium)
         Text(
             "1. Turn the switch on. Android asks once to allow a VPN connection. Allow it.\n" +
-                "2. SensorGuard makes a VPN that stays inside your phone. Nothing is sent to a SensorGuard server.\n" +
+                "2. ${com.example.Brand.name} makes a VPN that stays inside your phone. Nothing is sent to a ${com.example.Brand.name} server.\n" +
                 "3. Every time an app or browser asks for a website address, the phone checks the name against the block list. " +
                 "If the name (or its main domain) is on the list, the phone answers 'no such site' and the page does not open.\n" +
                 "4. Names that are not on the list are passed on to the DNS server your phone already uses.\n" +
@@ -135,9 +135,9 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
                 "Questions for sites that are not blocked go to the DNS server your phone already uses.",
             style = MaterialTheme.typography.bodySmall
         )
-        Text("List updates", style = MaterialTheme.typography.titleMedium)
+        Text("List updates (optional)", style = MaterialTheme.typography.titleMedium)
         Text(
-            "The app ships with a built-in list. The list is data, so it can be updated without a new app version. It updates by itself on Wi-Fi and, on mobile data, at the interval you pick below. You can also tap the button. It contacts github.com over HTTPS, " +
+            "The app ships with a built-in list. The list is data, so it can be updated without a new app version. It only updates when you tap the button or turn on the daily switch below. It contacts github.com over HTTPS, " +
                 "downloads one list file from this project's releases, checks its checksum, and only then uses it. GitHub sees your phone's " +
                 "internet address, as with any download. Nothing about you or your browsing is sent.",
             style = MaterialTheme.typography.bodySmall
@@ -148,22 +148,15 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
             else "Using the built-in list.",
             style = MaterialTheme.typography.bodySmall
         )
-        var mobileHours by remember { mutableStateOf(prefs.mobileHours) }
+        var auto by remember { mutableStateOf(prefs.autoUpdate) }
         val dayFmt = { ms: Long -> java.text.SimpleDateFormat("d MMM yyyy, HH:mm", java.util.Locale.getDefault()).format(java.util.Date(ms)) }
-        Text("Automatic updates are always on. This protection has no off switch.", style = MaterialTheme.typography.bodyMedium)
-        Text("On mobile data, update about every:", style = MaterialTheme.typography.bodyMedium)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            for (h in AutoListUpdate.MOBILE_CHOICES) {
-                if (h == mobileHours) Button(onClick = {}, modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h)) { Text(h.toString() + "h") }
-                else OutlinedButton(
-                    onClick = { mobileHours = h; AutoListUpdate.setMobileHours(context, h) },
-                    modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h)
-                ) { Text(h.toString() + "h") }
-            }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("Keep the block list updated (about once a day)", modifier = Modifier.weight(1f))
+            Switch(checked = auto, onCheckedChange = { auto = it; AutoListUpdate.setOn(context, it) }, modifier = Modifier.testTag("siteblock_auto_update"))
         }
         Text(
-            AutoListUpdate.statusText(mobileHours, BlocklistUpdater.lastUpdated(context), prefs.autoLastTry, prefs.autoLastFailure, dayFmt) +
-                " Each update downloads about 7 MB. A new list is used the next time blocking starts.",
+            AutoListUpdate.statusText(auto, BlocklistUpdater.lastUpdated(context), prefs.autoLastTry, prefs.autoLastFailure, dayFmt) +
+                " A new list is used the next time blocking starts.",
             style = MaterialTheme.typography.bodySmall
         )
         OutlinedButton(
@@ -190,7 +183,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
             "Block list built from: BlockList Project (github.com/blocklistproject/Lists, MIT licence, adult and gambling lists) " +
                 "and the UT1 blacklists of Universite Toulouse Capitole (dsi.ut-capitole.fr/blacklists, Creative Commons BY-SA 4.0, " +
                 "adult and gambling categories). Lists delivered by a list update also include the BlockList Project phishing, scam and ransomware lists (MIT licence); they are not in the built-in copy. The lists were merged, reduced to domain names and stored in a compact form. " +
-                "The data file stays under CC BY-SA 4.0 for the UT1 part. Full text: docs/THIRD_PARTY_LISTS.md in the SensorGuard repository.",
+                "The data file stays under CC BY-SA 4.0 for the UT1 part. Full text: docs/THIRD_PARTY_LISTS.md in the ${com.example.Brand.name} repository.",
             style = MaterialTheme.typography.bodySmall
         )
     }
