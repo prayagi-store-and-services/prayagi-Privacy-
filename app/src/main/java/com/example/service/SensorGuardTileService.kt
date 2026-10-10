@@ -32,7 +32,7 @@ class SensorGuardTileService : TileService() {
                 val isActive = state.isServiceRunning && (state.status == ProtectionStatus.PROTECTED || state.status == ProtectionStatus.MONITORING_IDLE)
                 
                 tile.state = if (isActive) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-                tile.label = "SensorGuard"
+                tile.label = "${com.example.Brand.name}"
                 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     tile.subtitle = when (state.status) {
@@ -73,7 +73,7 @@ class SensorGuardTileService : TileService() {
         val state = app.repository.guardState.value
 
         tile.state = if (state.isServiceRunning) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-        tile.label = "SensorGuard"
+        tile.label = "${com.example.Brand.name}"
         tile.updateTile()
     }
 }
