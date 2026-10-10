@@ -128,3 +128,10 @@ Settings has a "Phone security check" card. When the screen opens it reads, once
 - The daily job uses Android's background work scheduler (no new permission). It does nothing while the switch is off.
 - Phishing, scam and ransomware names (BlockList Project, MIT) arrive only through a list update. Android's Safe Browsing data is not used: it is Google's and is not given to apps as a list.
 - Not tested on every phone; tested in automated tests and an emulator.
+
+## PC browser-extension list (workflow "Publish PC block list")
+- After the phone list is published, the workflow "Publish PC block list" (`.github/workflows/publish-pc-list.yml`, script `scripts/pc_build_h64.py`) builds `domains-pc.h64` and uploads it to the same `blocklist-latest` release. It also runs weekly and on demand.
+- Input: the published `domains.bin` (its SHA-256 is checked first) plus the BlockList Project ads list. Output: a sorted file of 64-bit name hashes, with its own `.sha256`.
+- Official institution and bank names are removed from this list too (gov, edu, gov.in, nic.in, ac.in, edu.in, res.in, bank.in, rbi.org.in, npci.org.in), so a source-list mistake cannot block them.
+- The built-in self-test must pass before anything is published. If it fails, nothing is uploaded and the old file stays.
+- The list is public data. No user data is involved.
