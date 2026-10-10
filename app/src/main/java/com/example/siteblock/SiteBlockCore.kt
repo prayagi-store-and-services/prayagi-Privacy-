@@ -115,7 +115,7 @@ class BlockSet(private val sorted: LongArray) {
 /**
  * Official Indian institution domains are never blocked, whatever any list says. This is fixed in the app and cannot be
  * switched off. It covers government (gov.in, nic.in, gov), universities and research bodies (ac.in, edu.in, res.in, edu).
- * Courts are under gov.in and nic.in. Bank domains are a separate, verified list (not in this version).
+ * Courts are under gov.in and nic.in. Official bank domains (every .bank.in name plus the verified list in BankGuard) are never blocked either.
  */
 object OfficialDomains {
     val SUFFIXES: Set<String> = setOf("gov", "gov.in", "nic.in", "ac.in", "edu.in", "res.in", "edu")
@@ -123,7 +123,7 @@ object OfficialDomains {
     /** True when [name] is one of the suffixes or a name under one. Expects a normalized name. */
     fun isOfficial(name: String): Boolean {
         for (o in SUFFIXES) if (name == o || name.endsWith("." + o)) return true
-        return false
+        return BankGuard.isOfficial(name)
     }
 }
 
