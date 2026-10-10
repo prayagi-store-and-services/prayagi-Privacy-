@@ -135,9 +135,9 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
                 "Questions for sites that are not blocked go to the DNS server your phone already uses.",
             style = MaterialTheme.typography.bodySmall
         )
-        Text("List updates (optional)", style = MaterialTheme.typography.titleMedium)
+        Text("List updates", style = MaterialTheme.typography.titleMedium)
         Text(
-            "The app ships with a built-in list. The list is data, so it can be updated without a new app version. It only updates when you tap the button or turn on the daily switch below. It contacts github.com over HTTPS, " +
+            "The app ships with a built-in list. The list is data, so it can be updated without a new app version. It updates by itself on Wi-Fi and, on mobile data, at the interval you pick below. You can also tap the button. It contacts github.com over HTTPS, " +
                 "downloads one list file from this project's releases, checks its checksum, and only then uses it. GitHub sees your phone's " +
                 "internet address, as with any download. Nothing about you or your browsing is sent.",
             style = MaterialTheme.typography.bodySmall
@@ -148,15 +148,22 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
             else "Using the built-in list.",
             style = MaterialTheme.typography.bodySmall
         )
-        var auto by remember { mutableStateOf(prefs.autoUpdate) }
+        var mobileHours by remember { mutableStateOf(prefs.mobileHours) }
         val dayFmt = { ms: Long -> java.text.SimpleDateFormat("d MMM yyyy, HH:mm", java.util.Locale.getDefault()).format(java.util.Date(ms)) }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Keep the block list updated (about once a day)", modifier = Modifier.weight(1f))
-            Switch(checked = auto, onCheckedChange = { auto = it; AutoListUpdate.setOn(context, it) }, modifier = Modifier.testTag("siteblock_auto_update"))
+        Text("Automatic updates are always on. This protection has no off switch.", style = MaterialTheme.typography.bodyMedium)
+        Text("On mobile data, update about every:", style = MaterialTheme.typography.bodyMedium)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            for (h in AutoListUpdate.MOBILE_CHOICES) {
+                if (h == mobileHours) Button(onClick = {}, modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h)) { Text(h.toString() + "h") }
+                else OutlinedButton(
+                    onClick = { mobileHours = h; AutoListUpdate.setMobileHours(context, h) },
+                    modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h)
+                ) { Text(h.toString() + "h") }
+            }
         }
         Text(
-            AutoListUpdate.statusText(auto, BlocklistUpdater.lastUpdated(context), prefs.autoLastTry, prefs.autoLastFailure, dayFmt) +
-                " A new list is used the next time blocking starts.",
+            AutoListUpdate.statusText(mobileHours, BlocklistUpdater.lastUpdated(context), prefs.autoLastTry, prefs.autoLastFailure, dayFmt) +
+                " Each update downloads about 7 MB. A new list is used the next time blocking starts.",
             style = MaterialTheme.typography.bodySmall
         )
         OutlinedButton(

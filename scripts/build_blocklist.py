@@ -69,6 +69,11 @@ def main():
         sources.append(("UT1 adult", UT + "adult.tar.gz", hashlib.sha256(raw).hexdigest(), len(s)))
         names |= s
     names = {n for n in names if valid(n)}
+    # Official Indian institutions are never blocked, whatever a source list says (same set as OfficialDomains in the app).
+    official = ("gov", "gov.in", "nic.in", "ac.in", "edu.in", "res.in", "edu")
+    dropped = {n for n in names if any(n == o or n.endswith("." + o) for o in official)}
+    names -= dropped
+    print("dropped %d official-institution names" % len(dropped))
     keep = []
     for n in names:
         p = n.split(".")

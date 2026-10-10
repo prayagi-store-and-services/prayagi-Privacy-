@@ -112,12 +112,28 @@ class BlockSet(private val sorted: LongArray) {
     fun toArray(): LongArray = sorted
 }
 
+/**
+ * Official Indian institution domains are never blocked, whatever any list says. This is fixed in the app and cannot be
+ * switched off. It covers government (gov.in, nic.in, gov), universities and research bodies (ac.in, edu.in, res.in, edu).
+ * Courts are under gov.in and nic.in. Bank domains are a separate, verified list (not in this version).
+ */
+object OfficialDomains {
+    val SUFFIXES: Set<String> = setOf("gov", "gov.in", "nic.in", "ac.in", "edu.in", "res.in", "edu")
+
+    /** True when [name] is one of the suffixes or a name under one. Expects a normalized name. */
+    fun isOfficial(name: String): Boolean {
+        for (o in SUFFIXES) if (name == o || name.endsWith("." + o)) return true
+        return false
+    }
+}
+
 class SiteMatcher(private val block: BlockSet, allow: Collection<String>) {
     private val allowed: Set<String> = allow.mapNotNull { DomainNames.normalize(it) }.toSet()
 
     /** True when the name should be answered as "does not exist". The allow list wins, parents included. */
     fun isBlocked(rawName: String): Boolean {
         val name = DomainNames.normalize(rawName) ?: return false
+        if (OfficialDomains.isOfficial(name)) return false
         val chain = DomainNames.withParents(name)
         for (c in chain) if (c in allowed) return false
         for (c in chain) if (block.contains(c)) return true
