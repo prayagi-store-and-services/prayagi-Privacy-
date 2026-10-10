@@ -681,7 +681,7 @@ fun PolicySettingsScreen(
                     desc = "Android security sandbox isolates each application UID. No normal consumer application can change permissions of other apps silently."
                 )
                 TransparencyBullet(
-                    title = "How SensorGuard enforces protection:",
+                    title = "How ${com.example.Brand.name} enforces protection:",
                     desc = "Uses Audio Focus exclusivity and audio line reservation during screen-off to prevent unauthorized background capture and trigger Android privacy alerts."
                 )
                 TransparencyBullet(
