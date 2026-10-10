@@ -3,6 +3,7 @@
 
 Sources (see docs/THIRD_PARTY_LISTS.md for licences and credits):
   - BlockList Project porn.txt and gambling.txt (MIT / Unlicense)       https://github.com/blocklistproject/Lists
+  - BlockList Project phishing.txt, scam.txt, ransomware.txt (MIT), and malware.txt only when INCLUDE_BL_MALWARE=1 (2.6 million names, size decision pending)
   - UT1 blacklists gambling (and adult when INCLUDE_UT1_ADULT=1), CC BY-SA 4.0   https://dsi.ut-capitole.fr/blacklists/
 
 Output: one domain per line, lower case, sorted, a domain is dropped when a parent of it is already listed
@@ -50,7 +51,10 @@ def main():
     out = sys.argv[1]
     sources = []
     names = set()
-    for fname in ("porn.txt", "gambling.txt"):
+    files = ["porn.txt", "gambling.txt", "phishing.txt", "scam.txt", "ransomware.txt"]
+    if os.environ.get("INCLUDE_BL_MALWARE") == "1":
+        files.append("malware.txt")
+    for fname in files:
         raw = fetch(BL + fname)
         s = hosts_names(raw)
         sources.append(("BlockList Project " + fname, BL + fname, hashlib.sha256(raw).hexdigest(), len(s)))
