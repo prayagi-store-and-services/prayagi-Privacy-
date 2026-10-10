@@ -523,7 +523,7 @@ class SensorGuardService : Service() {
     }
 
     private fun buildForegroundNotification(title: String, contentText: String): Notification {
-        val openAppIntent = Intent(this, MainActivity::class.java).apply {
+        val openAppIntent = (packageManager.getLaunchIntentForPackage(packageName) ?: Intent(this, MainActivity::class.java)).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         val openPendingIntent = PendingIntent.getActivity(
@@ -566,7 +566,7 @@ class SensorGuardService : Service() {
     }
 
     private fun sendPrivacyAlertNotification(title: String, contentText: String) {
-        val openAppIntent = Intent(this, MainActivity::class.java).apply {
+        val openAppIntent = (packageManager.getLaunchIntentForPackage(packageName) ?: Intent(this, MainActivity::class.java)).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         val openPendingIntent = PendingIntent.getActivity(
