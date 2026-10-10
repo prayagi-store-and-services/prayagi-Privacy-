@@ -95,6 +95,18 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
                 if (error != null) Text(error ?: "", color = MaterialTheme.colorScheme.error)
             }
         }
+        Text("How site blocking works", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "1. Turn the switch on. Android asks once to allow a VPN connection. Allow it.\n" +
+                "2. SensorGuard makes a VPN that stays inside your phone. Nothing is sent to a SensorGuard server.\n" +
+                "3. Every time an app or browser asks for a website address, the phone checks the name against the block list. " +
+                "If the name (or its main domain) is on the list, the phone answers 'no such site' and the page does not open.\n" +
+                "4. Names that are not on the list are passed on to the DNS server your phone already uses.\n" +
+                "5. A key icon shows in the status bar while it is on. Turn the switch off any time.\n" +
+                "Only one VPN can run at a time on Android. This has been tested in automated tests and an emulator, not yet on every phone.",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.testTag("siteblock_how_it_works")
+        )
         Text("Sites you allow", style = MaterialTheme.typography.titleMedium)
         Text("If a site was blocked by mistake, add it here. An allowed site (and its subpages) is never blocked.", style = MaterialTheme.typography.bodySmall)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -113,7 +125,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         Text("What this can and cannot do", style = MaterialTheme.typography.titleMedium)
         Text(
             "It blocks by website name only. It does not read pages or messages. It reduces access, it is not a guarantee: " +
-                "a browser set to use its own secure DNS, a Private DNS setting, another VPN app or a site missing from the list " +
+                "a browser set to use its own secure DNS, a Private DNS setting, another VPN app, a network that uses IPv6 DNS only, or a site missing from the list " +
                 "can get around it. Only one VPN can be on at a time on Android. You can turn it off here at any time.",
             style = MaterialTheme.typography.bodySmall
         )
@@ -125,7 +137,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         )
         Text("List updates (optional)", style = MaterialTheme.typography.titleMedium)
         Text(
-            "The app ships with a built-in list and never updates it by itself. If you tap the button, it contacts github.com over HTTPS, " +
+            "The app ships with a built-in list. The list is data, so it can be updated without a new app version. It only updates when you tap the button or turn on the daily switch below. It contacts github.com over HTTPS, " +
                 "downloads one list file from this project's releases, checks its checksum, and only then uses it. GitHub sees your phone's " +
                 "internet address, as with any download. Nothing about you or your browsing is sent.",
             style = MaterialTheme.typography.bodySmall
@@ -134,6 +146,17 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         Text(
             if (last > 0L) "Using an updated list from " + java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(last))
             else "Using the built-in list.",
+            style = MaterialTheme.typography.bodySmall
+        )
+        var auto by remember { mutableStateOf(prefs.autoUpdate) }
+        val dayFmt = { ms: Long -> java.text.SimpleDateFormat("d MMM yyyy, HH:mm", java.util.Locale.getDefault()).format(java.util.Date(ms)) }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("Keep the block list updated (about once a day)", modifier = Modifier.weight(1f))
+            Switch(checked = auto, onCheckedChange = { auto = it; AutoListUpdate.setOn(context, it) }, modifier = Modifier.testTag("siteblock_auto_update"))
+        }
+        Text(
+            AutoListUpdate.statusText(auto, BlocklistUpdater.lastUpdated(context), prefs.autoLastTry, prefs.autoLastFailure, dayFmt) +
+                " A new list is used the next time blocking starts.",
             style = MaterialTheme.typography.bodySmall
         )
         OutlinedButton(
@@ -159,7 +182,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         Text(
             "Block list built from: BlockList Project (github.com/blocklistproject/Lists, MIT licence, adult and gambling lists) " +
                 "and the UT1 blacklists of Universite Toulouse Capitole (dsi.ut-capitole.fr/blacklists, Creative Commons BY-SA 4.0, " +
-                "adult and gambling categories). The two were merged, reduced to domain names and stored in a compact form. " +
+                "adult and gambling categories). Lists delivered by a list update also include the BlockList Project phishing, scam and ransomware lists (MIT licence); they are not in the built-in copy. The lists were merged, reduced to domain names and stored in a compact form. " +
                 "The data file stays under CC BY-SA 4.0 for the UT1 part. Full text: docs/THIRD_PARTY_LISTS.md in the SensorGuard repository.",
             style = MaterialTheme.typography.bodySmall
         )
