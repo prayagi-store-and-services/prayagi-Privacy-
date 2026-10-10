@@ -302,7 +302,7 @@ fun TransparencyNoticeCard(
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Android security deliberately prevents third-party apps from silently altering other apps' permissions. SensorGuard uses Android-supported maximum enforcement: exclusive audio hardware guards on screen-off, call exception intelligence, and Device Admin camera policies.",
+                text = "Android security deliberately prevents third-party apps from silently altering other apps' permissions. ${com.example.Brand.name} uses Android-supported maximum enforcement: exclusive audio hardware guards on screen-off, call exception intelligence, and Device Admin camera policies.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                 lineHeight = 18.sp

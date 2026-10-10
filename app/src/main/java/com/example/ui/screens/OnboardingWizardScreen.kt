@@ -231,7 +231,7 @@ fun OnboardingWizardScreen(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Activate SensorGuard", fontWeight = FontWeight.Bold)
+                    Text("Activate ${com.example.Brand.name}", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -262,7 +262,7 @@ private fun WizardStepWelcome() {
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Welcome to SensorGuard",
+            text = "Welcome to ${com.example.Brand.name}",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
@@ -271,7 +271,7 @@ private fun WizardStepWelcome() {
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "SensorGuard is built on zero deception and absolute architectural transparency. We do not make false claims of 'hidden silent mic blockers' — Android security prevents apps from quietly toggling other apps' permissions.",
+            text = "${com.example.Brand.name} is built on zero deception and absolute architectural transparency. We do not make false claims of 'hidden silent mic blockers' — Android security prevents apps from quietly toggling other apps' permissions.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -287,7 +287,7 @@ private fun WizardStepWelcome() {
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
-                    text = "What SensorGuard enforces:",
+                    text = "What ${com.example.Brand.name} enforces:",
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                     color = NeonCyan
                 )
@@ -337,7 +337,7 @@ private fun WizardStepPhone(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "SensorGuard needs Phone State permission to detect when phone calls begin or ring, so your microphone is instantly unlocked for your conversations without manual switching.",
+            text = "${com.example.Brand.name} needs Phone State permission to detect when phone calls begin or ring, so your microphone is instantly unlocked for your conversations without manual switching.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

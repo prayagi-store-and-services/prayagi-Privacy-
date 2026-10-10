@@ -66,7 +66,7 @@ class SgWidgetProvider : AppWidgetProvider() {
                 v.setTextViewText(R.id.sg_mic, "Microphone: Unavailable")
                 v.setTextViewText(R.id.sg_cam, "Camera: Unavailable")
                 v.setTextViewText(R.id.sg_admin, "Device admin: Unavailable")
-                v.setTextViewText(R.id.sg_time, "Open SensorGuard once to start")
+                v.setTextViewText(R.id.sg_time, "Open ${com.example.Brand.name} once to start")
             } else {
                 v.setTextViewText(R.id.sg_status, SgWidgetStore.statusLabel(snap.status))
                 v.setTextViewText(R.id.sg_mic, "Microphone: " + if (snap.micLocked) "Locked" else "Not locked")
@@ -74,7 +74,7 @@ class SgWidgetProvider : AppWidgetProvider() {
                 v.setTextViewText(R.id.sg_admin, "Device admin: " + if (snap.adminActive) "Active" else "Not active")
                 v.setTextViewText(R.id.sg_time, "As reported by the guard at " + SimpleDateFormat("d MMM HH:mm", Locale.getDefault()).format(Date(snap.atMs)))
             }
-            val intent = Intent(context, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP }
+            val intent = (context.packageManager.getLaunchIntentForPackage(context.packageName) ?: Intent(context, MainActivity::class.java)).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP }
             v.setOnClickPendingIntent(R.id.sg_root, PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
             mgr.updateAppWidget(id, v)
         }

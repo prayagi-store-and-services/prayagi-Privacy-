@@ -219,8 +219,8 @@ class SensorGuardViewModel(
         val sendIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, csvData)
-            putExtra(Intent.EXTRA_TITLE, "SensorGuard Privacy Ledger (CSV)")
-            putExtra(Intent.EXTRA_SUBJECT, "SensorGuard Privacy Ledger CSV Export (${events.size} events)")
+            putExtra(Intent.EXTRA_TITLE, "${com.example.Brand.name} Privacy Ledger (CSV)")
+            putExtra(Intent.EXTRA_SUBJECT, "${com.example.Brand.name} Privacy Ledger CSV Export (${events.size} events)")
             type = "text/csv"
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
@@ -236,8 +236,8 @@ class SensorGuardViewModel(
         val sendIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, reportData)
-            putExtra(Intent.EXTRA_TITLE, "SensorGuard Forensic Privacy Report")
-            putExtra(Intent.EXTRA_SUBJECT, "SensorGuard Forensic Privacy Ledger Report (${events.size} events)")
+            putExtra(Intent.EXTRA_TITLE, "${com.example.Brand.name} Forensic Privacy Report")
+            putExtra(Intent.EXTRA_SUBJECT, "${com.example.Brand.name} Forensic Privacy Ledger Report (${events.size} events)")
             type = "text/plain"
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
@@ -293,7 +293,7 @@ class SensorGuardViewModel(
             putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, component)
             putExtra(
                 DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                "SensorGuard requires Device Admin to enforce hardware Camera disable policy during privacy shield activation."
+                "${com.example.Brand.name} requires Device Admin to enforce hardware Camera disable policy during privacy shield activation."
             )
         }
         activity.startActivity(intent)

@@ -23,6 +23,7 @@ class SensorGuardApplication : Application() {
         repository = PrivacyRepository(this, database.privacyEventDao())
 
         createNotificationChannels()
+        try { Brand.applyLauncherName(this) } catch (_: Throwable) { }
         try { com.example.siteblock.AutoListUpdate.ensureScheduled(this) } catch (_: Throwable) { }
     }
 

@@ -72,7 +72,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         Text("Block adult and gambling sites", style = MaterialTheme.typography.headlineSmall)
         Text(
             "Uses a list of known adult and gambling websites kept on this phone. When an app or browser asks for the " +
-                "address of a listed site, SensorGuard answers that it does not exist. Everything stays on the phone.",
+                "address of a listed site, ${com.example.Brand.name} answers that it does not exist. Everything stays on the phone.",
             style = MaterialTheme.typography.bodyMedium
         )
         Card(Modifier.fillMaxWidth()) {
@@ -98,7 +98,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         Text("How site blocking works", style = MaterialTheme.typography.titleMedium)
         Text(
             "1. Turn the switch on. Android asks once to allow a VPN connection. Allow it.\n" +
-                "2. SensorGuard makes a VPN that stays inside your phone. Nothing is sent to a SensorGuard server.\n" +
+                "2. ${com.example.Brand.name} makes a VPN that stays inside your phone. Nothing is sent to a ${com.example.Brand.name} server.\n" +
                 "3. Every time an app or browser asks for a website address, the phone checks the name against the block list. " +
                 "If the name (or its main domain) is on the list, the phone answers 'no such site' and the page does not open.\n" +
                 "4. Names that are not on the list are passed on to the DNS server your phone already uses.\n" +
@@ -190,7 +190,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
             "Block list built from: BlockList Project (github.com/blocklistproject/Lists, MIT licence, adult and gambling lists) " +
                 "and the UT1 blacklists of Universite Toulouse Capitole (dsi.ut-capitole.fr/blacklists, Creative Commons BY-SA 4.0, " +
                 "adult and gambling categories). Lists delivered by a list update also include the BlockList Project phishing, scam and ransomware lists (MIT licence); they are not in the built-in copy. The lists were merged, reduced to domain names and stored in a compact form. " +
-                "The data file stays under CC BY-SA 4.0 for the UT1 part. Full text: docs/THIRD_PARTY_LISTS.md in the SensorGuard repository.",
+                "The data file stays under CC BY-SA 4.0 for the UT1 part. Full text: docs/THIRD_PARTY_LISTS.md in the ${com.example.Brand.name} repository.",
             style = MaterialTheme.typography.bodySmall
         )
     }
