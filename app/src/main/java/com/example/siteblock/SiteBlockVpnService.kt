@@ -37,6 +37,17 @@ class SiteBlockPrefs(context: Context) {
     var lastError: String?
         get() = p.getString("last_error", null)
         set(v) { p.edit().putString("last_error", v).apply() }
+    /** Optional daily list update. Default OFF: nothing is downloaded unless the user turns this on. */
+    var autoUpdate: Boolean
+        get() = p.getBoolean("auto_update", false)
+        set(v) { p.edit().putBoolean("auto_update", v).apply() }
+    var autoLastTry: Long
+        get() = p.getLong("auto_last_try", 0L)
+        set(v) { p.edit().putLong("auto_last_try", v).apply() }
+    /** Plain reason the last automatic update failed, or null when it worked (or has not run). */
+    var autoLastFailure: String?
+        get() = p.getString("auto_last_failure", null)
+        set(v) { p.edit().putString("auto_last_failure", v).apply() }
     val blockedTotal: Long get() = p.getLong("blocked_total", 0L)
     fun blockedToday(): Long = if (p.getString("day", "") == today()) p.getLong("blocked_today", 0L) else 0L
     fun addBlocked(n: Long) {
