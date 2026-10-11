@@ -83,9 +83,9 @@ fun MyApplicationTheme(
     dynamicColor: Boolean = false, // Keep consistent cyber privacy aesthetic
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (RedesignGate.isOn()) {
+    val colorScheme = com.example.festival.festiveScheme(if (RedesignGate.isOn()) {
         if (darkTheme) NewDarkColorScheme else NewLightColorScheme
-    } else if (darkTheme) DarkColorScheme else LightColorScheme
+    } else if (darkTheme) DarkColorScheme else LightColorScheme)
     val view = LocalView.current
 
     if (!view.isInEditMode) {
