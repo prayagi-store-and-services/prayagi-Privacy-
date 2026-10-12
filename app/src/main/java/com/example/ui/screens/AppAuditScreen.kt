@@ -103,12 +103,14 @@ fun AppAuditScreen(
     val micCount = scannedApps.count { it.hasMicrophonePermission }
     val camCount = scannedApps.count { it.hasCameraPermission }
 
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .testTag("app_audit_screen")
     ) {
+        item {
+        Column {
         // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -249,11 +251,13 @@ fun AppAuditScreen(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
+        }
+        }
         // App List
         if (isScanning && scannedApps.isEmpty()) {
+            item {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -266,9 +270,11 @@ fun AppAuditScreen(
                     )
                 }
             }
+            }
         } else if (filteredApps.isEmpty()) {
+            item {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -277,12 +283,10 @@ fun AppAuditScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(filteredApps, key = { it.packageName }) { app ->
+            items(filteredApps, key = { it.packageName }) { app ->
+                Box(modifier = Modifier.padding(bottom = 8.dp)) {
                     AppRiskCard(
                         app = app,
                         onManageClick = { viewModel.openAppDetails(context, app.packageName) }

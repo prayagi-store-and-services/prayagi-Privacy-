@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Layout fix (v1.4.7)
+
+Not a security patch. Only the app name and version header stays fixed now; the title, search, filter chips and report tabs scroll with the page on Ledger, Audit and Report. No new permission, library, server or stored data.
+
 ## Region guard (v1.4.4)
 
 The app refuses to open when the phone's SIM or network country is on a built-in block list (PK, BD, AF, CN, KP). The check runs only on the phone, uses no permission, no network call and no IP lookup, and nothing is stored or sent. With no signal, or an Indian SIM, it never blocks. It is a deterrent, not foolproof: removing the SIM or changing the language region bypasses it.
