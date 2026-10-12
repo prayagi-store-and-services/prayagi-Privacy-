@@ -32,11 +32,13 @@ fun AppUsesReportScreen(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item {
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -64,8 +66,8 @@ fun AppUsesReportScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
+            }
+            item {
             // Report Sub-Tabs
             ScrollableTabRow(
                 selectedTabIndex = selectedReportTab,
@@ -93,8 +95,7 @@ fun AppUsesReportScreen(
                     text = { Text("Timeline", maxLines = 1, softWrap = false) }
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            }
 
             when (selectedReportTab) {
                 0 -> ReportOverviewTab(scannedApps, allEvents)
@@ -106,12 +107,8 @@ fun AppUsesReportScreen(
     }
 }
 
-@Composable
-fun ReportOverviewTab(scannedApps: List<com.example.data.model.AppRiskInfo>, allEvents: List<com.example.data.model.PrivacyEvent>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
+fun androidx.compose.foundation.lazy.LazyListScope.ReportOverviewTab(scannedApps: List<com.example.data.model.AppRiskInfo>, allEvents: List<com.example.data.model.PrivacyEvent>) {
+    run {
         item {
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -175,12 +172,8 @@ fun StatRow(label: String, value: String) {
     }
 }
 
-@Composable
-fun ReportAppsTab(scannedApps: List<com.example.data.model.AppRiskInfo>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+fun androidx.compose.foundation.lazy.LazyListScope.ReportAppsTab(scannedApps: List<com.example.data.model.AppRiskInfo>) {
+    run {
         items(scannedApps) { app ->
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -217,12 +210,8 @@ fun CapabilityBadge(label: String, color: Color) {
     }
 }
 
-@Composable
-fun ReportPermissionsTab(scannedApps: List<com.example.data.model.AppRiskInfo>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
+fun androidx.compose.foundation.lazy.LazyListScope.ReportPermissionsTab(scannedApps: List<com.example.data.model.AppRiskInfo>) {
+    run {
         item {
             PermissionGroupCard(
                 title = "🎤 Microphone Capability",
@@ -264,12 +253,8 @@ fun PermissionGroupCard(title: String, apps: List<String>) {
     }
 }
 
-@Composable
-fun ReportTimelineTab(allEvents: List<com.example.data.model.PrivacyEvent>) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+fun androidx.compose.foundation.lazy.LazyListScope.ReportTimelineTab(allEvents: List<com.example.data.model.PrivacyEvent>) {
+    run {
         if (allEvents.isEmpty()) {
             item {
                 Text(
