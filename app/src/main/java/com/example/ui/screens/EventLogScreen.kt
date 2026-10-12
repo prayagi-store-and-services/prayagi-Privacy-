@@ -163,12 +163,14 @@ fun EventLogScreen(
         )
     }
 
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 10.dp)
             .testTag("event_log_screen")
     ) {
+        item {
+        Column {
         // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -476,11 +478,13 @@ fun EventLogScreen(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
+        }
+        }
         // Main Ledger Event List
         if (filteredEvents.isEmpty()) {
+            item {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -499,12 +503,10 @@ fun EventLogScreen(
                     )
                 }
             }
+            }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(filteredEvents, key = { it.id }) { event ->
+            items(filteredEvents, key = { it.id }) { event ->
+                Box(modifier = Modifier.padding(bottom = 8.dp)) {
                     LedgerEventItemCard(
                         event = event,
                         onClick = { inspectingEvent = event },
