@@ -105,6 +105,7 @@ class SiteBlockVpnService : VpnService() {
     @Volatile private var running = false
     private var worker: Thread? = null
     private val pool = Executors.newFixedThreadPool(6)
+    private val dnsFailStreak = java.util.concurrent.atomic.AtomicInteger(0)
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
@@ -174,6 +175,10 @@ class SiteBlockVpnService : VpnService() {
         val prefs = SiteBlockPrefs(this)
         val set = SiteBlockLoader.load(this)
         if (set == null) { fail(prefs, "The block list could not be loaded."); return }
+        // Strict Private DNS (DNS over TLS to a named server) cannot pass through this plain-DNS filter and would cut off
+        // all internet while blocking is on, so blocking refuses to start in that case.
+        val pdMode = try { android.provider.Settings.Global.getString(contentResolver, "private_dns_mode") } catch (e: Exception) { null }
+        if (pdMode == "hostname") { fail(prefs, "Blocking was not started: this phone uses a fixed Private DNS server, which would cut off your internet. Set Private DNS to Automatic or Off in Android settings, then try again."); return }
         // Read the phone's own DNS server before our VPN becomes the active network.
         val upstream = phoneDnsServer()
         if (upstream == null) { fail(prefs, "No DNS server was found on this network, so blocking was not started."); return }
@@ -190,6 +195,7 @@ class SiteBlockVpnService : VpnService() {
         tun = fd
         running = true
         prefs.lastError = null
+        dnsFailStreak.set(0)
         worker = Thread({ loop(fd, matcher, upstream, prefs) }, "siteblock-loop").also { it.start() }
     }
 
@@ -218,7 +224,7 @@ class SiteBlockVpnService : VpnService() {
                         pending.incrementAndGet()
                     } else {
                         warnIfFakeBank(q.name)
-                        pool.execute { forward(q, upstream, output) }
+                        pool.execute { forward(q, upstream, output, prefs) }
                     }
                 }
                 val now = System.currentTimeMillis()
@@ -234,7 +240,7 @@ class SiteBlockVpnService : VpnService() {
         }
     }
 
-    private fun forward(q: DnsQuery, upstream: InetAddress, output: FileOutputStream) {
+    private fun forward(q: DnsQuery, upstream: InetAddress, output: FileOutputStream, prefs: SiteBlockPrefs) {
         try {
             DatagramSocket().use { s ->
                 protect(s) // keep our own question outside the tunnel
@@ -246,9 +252,13 @@ class SiteBlockVpnService : VpnService() {
                 s.receive(dp)
                 val answer = DnsPacket.reply(q, rb.copyOf(dp.length))
                 synchronized(output) { output.write(answer) }
+                dnsFailStreak.set(0)
             }
         } catch (e: Exception) {
-            // No answer: the app that asked will retry on its own.
+            // No answer. If DNS keeps failing, fail open: stop the tunnel so the phone's internet is never cut off.
+            if (dnsFailStreak.incrementAndGet() >= 6 && running) {
+                fail(prefs, "Blocking was turned off because the phone's DNS stopped answering. Your internet is back to normal.")
+            }
         }
     }
 
