@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Site blocking fails open (v1.4.8)
+
+Site blocking uses a local VPN that only handles DNS questions. It now stops itself and tells you if the phone's DNS stops answering (6 failed questions in a row), and it refuses to start when Android is set to a fixed Private DNS server, because that combination can cut off all internet. Nothing is sent anywhere and no names are saved. No new permission, library or server.
+
 ## Layout fix (v1.4.7)
 
 Not a security patch. Only the app name and version header stays fixed now; the title, search, filter chips and report tabs scroll with the page on Ledger, Audit and Report. No new permission, library, server or stored data.
