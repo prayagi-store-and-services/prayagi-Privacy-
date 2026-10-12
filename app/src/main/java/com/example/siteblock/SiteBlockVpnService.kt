@@ -173,6 +173,11 @@ class SiteBlockVpnService : VpnService() {
 
     private fun startBlocking() {
         val prefs = SiteBlockPrefs(this)
+        // Switched off in this version: it could cut off the phone's internet. It never starts the VPN until fixed.
+        if (BLOCKING_DISABLED) {
+            fail(prefs, "Site blocking is switched off in this version while a problem that could cut off your internet is fixed.")
+            return
+        }
         val set = SiteBlockLoader.load(this)
         if (set == null) { fail(prefs, "The block list could not be loaded."); return }
         // Strict Private DNS (DNS over TLS to a named server) cannot pass through this plain-DNS filter and would cut off
@@ -282,6 +287,7 @@ class SiteBlockVpnService : VpnService() {
     }
 
     companion object {
+        private val BLOCKING_DISABLED: Boolean = true
         const val ACTION_STOP = "com.example.siteblock.STOP"
         private const val CHANNEL = "site_block"
         private const val NOTIF_ID = 4107
