@@ -65,7 +65,7 @@ object AutoListUpdate {
             lastFailure != null -> "It did not work: " + lastFailure
             else -> "It worked."
         }
-        val using = if (lastUpdatedMs > 0L) " Using a list from " + fmt(lastUpdatedMs) + "." else " Using the built-in list."
+        val using = if (lastUpdatedMs > 0L) " List downloaded to this phone at " + fmt(lastUpdatedMs) + "." else " Using the built-in list."
         return plan + tried + result + using
     }
 }

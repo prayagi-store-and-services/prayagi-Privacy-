@@ -1,5 +1,13 @@
 # Security notes - SensorGuard
 
+## Daily source build and honest freshness (v1.4.11)
+
+The free GitHub producer is scheduled daily. A successful complete build writes a bounded source manifest with the actual build time, count, size and SHA-256; it uploads a content-addressed archive before updating the manifest pointer. A failed build does not replace the pointer. Older content-addressed archives remain available so an interrupted publication cannot turn a previously read manifest into a missing or different file. Checksums detect corruption; they are not independent publisher signatures. GitHub/repository ownership remains a trust boundary.
+
+The app's existing automatic Wi-Fi/mobile workers now use this manifest and reject malformed metadata, a future build time, an older source, unexpected file names, hash/size/count mismatches and undersized lists. Failures keep the prior local list. A source build time is shown separately from the phone's download time. Old installed lists without provenance show source date Unavailable, not a fresh date inferred from downloading old data. A build over 48 hours old warns that daily refresh may be delayed. Source owners may not have added every new harmful domain yet; daily schedule is not a guarantee.
+
+No new permission, library, server or paid service. Downloads still go to this project's GitHub release. Android may delay background workers. Active VPN picks up the changed list when blocking next starts, as before. No Android exploit claim; this is data refresh and truthful freshness reporting. Real-phone worker execution remains unverified.
+
 ## Site blocking fails open (v1.4.8)
 
 Site blocking uses a local VPN that only handles DNS questions. It now stops itself and tells you if the phone's DNS stops answering (6 failed questions in a row), and it refuses to start when Android is set to a fixed Private DNS server, because that combination can cut off all internet. Nothing is sent anywhere and no names are saved. No new permission, library or server.
@@ -137,7 +145,7 @@ Settings has a "Phone security check" card. When the screen opens it reads, once
 ## Site-block list updates (version 1.4.0)
 - Automatic and always on since v1.4.1 (the owner decided protection must not depend on a switch; there is no off switch). On Wi-Fi the list updates about every 12 hours; on mobile data at the interval the user picks (6, 12, 24, 48 or 72 hours, default 24; about 7 MB per update). "Update lists now" does it on demand. These download one list file from this project's GitHub releases over HTTPS. GitHub sees the phone's internet address, as for any download. Nothing about the user or their browsing is sent.
 - Each download is checked against the published SHA-256, a size limit and a parse test. If anything fails, the old list stays in use and the screen shows the reason.
-- The daily job uses Android's background work scheduler (no new permission). It does nothing while the switch is off.
+- The client uses Android's background work scheduler (no new permission). Automatic updates are always on; Android picks the actual execution time.
 - Phishing, scam and ransomware names (BlockList Project, MIT) arrive only through a list update. Android's Safe Browsing data is not used: it is Google's and is not given to apps as a list.
 - Not tested on every phone; tested in automated tests and an emulator.
 
@@ -147,3 +155,6 @@ Settings has a "Phone security check" card. When the screen opens it reads, once
 - Official institution and bank names are removed from this list too (gov, edu, gov.in, nic.in, ac.in, edu.in, res.in, bank.in, rbi.org.in, npci.org.in), so a source-list mistake cannot block them.
 - The built-in self-test must pass before anything is published. If it fails, nothing is uploaded and the old file stays.
 - The list is public data. No user data is involved.
+
+
+Visible version row now ends with " | Netra Ecosystem" per owner instruction. No permissions, identifiers, signing or data changes from this attribution. Header rendering is reviewed before release.

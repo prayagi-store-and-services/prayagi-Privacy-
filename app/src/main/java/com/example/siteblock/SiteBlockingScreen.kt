@@ -4,6 +4,7 @@ import android.app.Activity
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -144,21 +145,25 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         )
         val last = BlocklistUpdater.lastUpdated(context)
         Text(
-            if (last > 0L) "Using an updated list from " + java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(last))
+            if (last > 0L) "List downloaded to this phone at " + java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(last))
             else "Using the built-in list.",
             style = MaterialTheme.typography.bodySmall
         )
         var mobileHours by remember { mutableStateOf(prefs.mobileHours) }
         val dayFmt = { ms: Long -> java.text.SimpleDateFormat("d MMM yyyy, HH:mm", java.util.Locale.getDefault()).format(java.util.Date(ms)) }
+        Text(BlocklistUpdater.sourceStatus(BlocklistUpdater.sourceBuiltAt(context), System.currentTimeMillis()) {
+            java.text.SimpleDateFormat("d MMM yyyy HH:mm z", java.util.Locale.getDefault()).format(java.util.Date(it))
+        }, style = MaterialTheme.typography.bodySmall)
         Text("Automatic updates are always on. This protection has no off switch.", style = MaterialTheme.typography.bodyMedium)
         Text("On mobile data, update about every:", style = MaterialTheme.typography.bodyMedium)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             for (h in AutoListUpdate.MOBILE_CHOICES) {
-                if (h == mobileHours) Button(onClick = {}, modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h)) { Text(h.toString() + "h") }
+                if (h == mobileHours) Button(onClick = {}, modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)) { Text(h.toString() + "h", maxLines = 1) }
                 else OutlinedButton(
                     onClick = { mobileHours = h; AutoListUpdate.setMobileHours(context, h) },
-                    modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h)
-                ) { Text(h.toString() + "h") }
+                    modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                ) { Text(h.toString() + "h", maxLines = 1) }
             }
         }
         Text(

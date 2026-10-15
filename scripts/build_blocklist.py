@@ -10,7 +10,7 @@ Output: one domain per line, lower case, sorted, a domain is dropped when a pare
 (the app blocks subdomains of every listed name). Also writes SOURCES.txt next to it with date, counts and sha256.
 Usage: build_blocklist.py <output domains.txt.gz>
 """
-import gzip, hashlib, io, os, sys, tarfile, urllib.request, datetime
+import gzip, hashlib, io, os, sys, tarfile, urllib.request, datetime, json, shutil
 
 BL = "https://raw.githubusercontent.com/blocklistproject/Lists/master/"
 UT = "https://dsi.ut-capitole.fr/blacklists/download/"
@@ -90,6 +90,17 @@ def main():
         f.write("Built %s UTC. Names after merge and parent-reduction: %d\n" % (datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M"), len(keep)))
         for n, u, h, c in sources:
             f.write("%s | %s | sha256 %s | %d names\n" % (n, u, h, c))
+    with open(out, "rb") as archive_input:
+        data = archive_input.read()
+    sha = hashlib.sha256(data).hexdigest()
+    archive = "domains-" + sha + ".bin"
+    shutil.copyfile(out, os.path.join(os.path.dirname(out), archive))
+    metadata = {"schema": 1, "builtAtEpochSeconds": int(datetime.datetime.now(datetime.timezone.utc).timestamp()),
+                "sha256": sha, "size": len(data), "names": len(keep), "file": archive}
+    with open(os.path.join(os.path.dirname(out), "blocklist.json"), "w") as f:
+        json.dump(metadata, f, sort_keys=True)
+        f.write("\n")
     print("wrote %s with %d names" % (out, len(keep)))
 
-main()
+if __name__ == "__main__":
+    main()

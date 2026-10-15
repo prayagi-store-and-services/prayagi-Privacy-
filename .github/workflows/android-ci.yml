@@ -36,12 +36,16 @@ jobs:
           keytool -genkeypair -keystore debug.keystore -storepass android
           -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048
           -validity 10000 -dname "CN=Android Debug,O=Android,C=US" -noprompt
+      - name: Test source manifest and failed-build preservation
+        run: python3 -m unittest discover -s scripts -p 'test_blocklist_metadata.py'
       - name: Build debug APK and run unit tests
         shell: bash
         run: |
           set -o pipefail
           mkdir -p app/build/ci-diagnostics
           gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest --stacktrace 2>&1 | tee app/build/ci-diagnostics/android-build.log
+      - name: Render real source-freshness screen for visual review
+        run: gradle --no-daemon :app:testDebugUnitTest --tests com.example.SourceFreshnessScreenshotTest -Proborazzi.test.record=true --stacktrace
       - name: Upload build log and test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,4 +54,6 @@ jobs:
           path: |
             app/build/test-results/testDebugUnitTest/*.xml
             app/build/ci-diagnostics/android-build.log
+            app/build/outputs/source-freshness.png
+            app/build/outputs/ecosystem-version-header.png
           if-no-files-found: warn

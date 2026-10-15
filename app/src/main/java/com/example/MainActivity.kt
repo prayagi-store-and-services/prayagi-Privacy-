@@ -153,17 +153,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
                 var clockNow by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(java.util.Date()) }
                 androidx.compose.runtime.LaunchedEffect(Unit) { while (true) { clockNow = java.util.Date(); kotlinx.coroutines.delay(30_000) } }
                 val ownVersion = androidx.compose.runtime.remember { try { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName } catch (e: Exception) { null } ?: "Unavailable" }
-                androidx.compose.foundation.layout.Row(
-                    modifier = Modifier.fillMaxWidth().background(androidx.compose.material3.MaterialTheme.colorScheme.background).statusBarsPadding().height(56.dp).padding(horizontal = 16.dp),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
-                ) {
-                    androidx.compose.foundation.layout.Column {
-                        Text(text = "SensorGuard", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, maxLines = 1)
-                        Text(text = "v" + ownVersion, fontSize = 12.sp, maxLines = 1, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Text(text = java.text.SimpleDateFormat("EEE d MMM, HH:mm", java.util.Locale.getDefault()).format(clockNow), fontSize = 12.sp, maxLines = 1, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                NetraVersionHeader(ownVersion, clockNow)
             },
             bottomBar = {
                 NavigationBar(
@@ -297,4 +287,19 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
             }
         }
     }
+}
+
+@androidx.compose.runtime.Composable
+fun NetraVersionHeader(ownVersion: String, clockNow: java.util.Date) {
+                androidx.compose.foundation.layout.Row(
+                    modifier = Modifier.fillMaxWidth().background(androidx.compose.material3.MaterialTheme.colorScheme.background).statusBarsPadding().height(56.dp).padding(horizontal = 16.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+                ) {
+                    androidx.compose.foundation.layout.Column(Modifier.weight(1f).padding(end = 8.dp)) {
+                        Text(text = "SensorGuard", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, maxLines = 1)
+                        Text(text = "v" + ownVersion + " | Netra Ecosystem", fontSize = 12.sp, maxLines = 1, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(text = java.text.SimpleDateFormat("EEE d MMM, HH:mm", java.util.Locale.getDefault()).format(clockNow), fontSize = 12.sp, maxLines = 1, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
+                }
 }
