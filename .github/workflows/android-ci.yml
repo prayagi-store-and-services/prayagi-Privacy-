@@ -44,6 +44,8 @@ jobs:
           set -o pipefail
           mkdir -p app/build/ci-diagnostics
           gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest --stacktrace 2>&1 | tee app/build/ci-diagnostics/android-build.log
+      - name: Render real source-freshness screen for visual review
+        run: gradle --no-daemon :app:testDebugUnitTest --tests com.example.SourceFreshnessScreenshotTest -Proborazzi.test.record=true --stacktrace
       - name: Upload build log and test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -52,4 +54,5 @@ jobs:
           path: |
             app/build/test-results/testDebugUnitTest/*.xml
             app/build/ci-diagnostics/android-build.log
+            app/build/outputs/source-freshness.png
           if-no-files-found: warn
