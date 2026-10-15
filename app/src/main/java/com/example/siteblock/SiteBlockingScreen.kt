@@ -144,12 +144,15 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         )
         val last = BlocklistUpdater.lastUpdated(context)
         Text(
-            if (last > 0L) "Using an updated list from " + java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(last))
+            if (last > 0L) "List downloaded to this phone at " + java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(last))
             else "Using the built-in list.",
             style = MaterialTheme.typography.bodySmall
         )
         var mobileHours by remember { mutableStateOf(prefs.mobileHours) }
         val dayFmt = { ms: Long -> java.text.SimpleDateFormat("d MMM yyyy, HH:mm", java.util.Locale.getDefault()).format(java.util.Date(ms)) }
+        Text(BlocklistUpdater.sourceStatus(BlocklistUpdater.sourceBuiltAt(context), System.currentTimeMillis()) {
+            java.text.SimpleDateFormat("d MMM yyyy HH:mm z", java.util.Locale.getDefault()).format(java.util.Date(it))
+        }, style = MaterialTheme.typography.bodySmall)
         Text("Automatic updates are always on. This protection has no off switch.", style = MaterialTheme.typography.bodyMedium)
         Text("On mobile data, update about every:", style = MaterialTheme.typography.bodyMedium)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
