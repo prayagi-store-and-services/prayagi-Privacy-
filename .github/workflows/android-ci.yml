@@ -36,6 +36,8 @@ jobs:
           keytool -genkeypair -keystore debug.keystore -storepass android
           -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048
           -validity 10000 -dname "CN=Android Debug,O=Android,C=US" -noprompt
+      - name: Test source manifest and failed-build preservation
+        run: python3 -m unittest discover -s scripts -p 'test_blocklist_metadata.py'
       - name: Build debug APK and run unit tests
         shell: bash
         run: |
