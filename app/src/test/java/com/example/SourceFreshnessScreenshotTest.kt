@@ -3,6 +3,7 @@ package com.example
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -21,7 +22,7 @@ import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(qualifiers = RobolectricDeviceQualifiers.Pixel8, sdk = [34], application = android.app.Application::class)
+@Config(qualifiers = "w360dp-h800dp-xhdpi", sdk = [34], application = android.app.Application::class)
 class SourceFreshnessScreenshotTest {
     @get:Rule val composeTestRule = createComposeRule()
     @Test fun sourceUnknownIsVisibleWithoutInventedFreshness() {
@@ -29,4 +30,12 @@ class SourceFreshnessScreenshotTest {
         composeTestRule.onNodeWithText("Update lists now", substring = true).performScrollTo()
         composeTestRule.onRoot().captureRoboImage(filePath = "build/outputs/source-freshness.png")
     }
+    @Test fun versionNamesEcosystem() {
+        composeTestRule.setContent { MaterialTheme(colorScheme = lightColorScheme()) { Surface(Modifier.fillMaxSize()) {
+            NetraVersionHeader("1.4.11", java.util.Date(1792067400000L))
+        } } }
+        composeTestRule.onNodeWithText("v1.4.11 | Netra Ecosystem").assertIsDisplayed()
+        composeTestRule.onRoot().captureRoboImage(filePath = "build/outputs/ecosystem-version-header.png")
+    }
+
 }
