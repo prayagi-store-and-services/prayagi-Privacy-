@@ -155,3 +155,6 @@ Settings has a "Phone security check" card. When the screen opens it reads, once
 - Official institution and bank names are removed from this list too (gov, edu, gov.in, nic.in, ac.in, edu.in, res.in, bank.in, rbi.org.in, npci.org.in), so a source-list mistake cannot block them.
 - The built-in self-test must pass before anything is published. If it fails, nothing is uploaded and the old file stays.
 - The list is public data. No user data is involved.
+
+
+Visible version row now ends with " | Netra Ecosystem" per owner instruction. No permissions, identifiers, signing or data changes from this attribution. Header rendering is reviewed before release.
