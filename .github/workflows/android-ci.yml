@@ -55,4 +55,5 @@ jobs:
             app/build/test-results/testDebugUnitTest/*.xml
             app/build/ci-diagnostics/android-build.log
             app/build/outputs/source-freshness.png
+            app/build/outputs/ecosystem-version-header.png
           if-no-files-found: warn
