@@ -157,11 +157,12 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         Text("On mobile data, update about every:", style = MaterialTheme.typography.bodyMedium)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             for (h in AutoListUpdate.MOBILE_CHOICES) {
-                if (h == mobileHours) Button(onClick = {}, modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h)) { Text(h.toString() + "h") }
+                if (h == mobileHours) Button(onClick = {}, modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)) { Text(h.toString() + "h", maxLines = 1) }
                 else OutlinedButton(
                     onClick = { mobileHours = h; AutoListUpdate.setMobileHours(context, h) },
-                    modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h)
-                ) { Text(h.toString() + "h") }
+                    modifier = Modifier.weight(1f).testTag("siteblock_mobile_" + h),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+                ) { Text(h.toString() + "h", maxLines = 1) }
             }
         }
         Text(
