@@ -158,3 +158,5 @@ Settings has a "Phone security check" card. When the screen opens it reads, once
 
 
 Visible version row now ends with " | Netra Ecosystem" per owner instruction. No permissions, identifiers, signing or data changes from this attribution. Header rendering is reviewed before release.
+
+2026-10-16 build-classpath security (1.4.12): the Gradle build classpath (CI and release signing) now forces org.bouncycastle:bcprov-jdk18on 1.85 and org.apache.httpcomponents:httpclient 4.5.14 instead of the 1.79 / 4.5.6 pinned by the Android build plugin. These libraries run only during the build; they are never packaged into the app. App code, permissions, network behavior and stored data are unchanged. Addresses Dependabot-flagged build-classpath CVEs (critical GHSA-9pwp-9qqc-pr26 and GHSA-574f-3g2m-x479; high GHSA-qp49-qgx5-5m26 and GHSA-p93r-85wp-75v3; medium GHSA-c3fc-8qff-9hwx and GHSA-7r82-7xv7-xcpj). Not an app behavior change; phone testing state unchanged.
