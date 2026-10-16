@@ -1,5 +1,17 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
+buildscript {
+  configurations.classpath {
+    resolutionStrategy {
+      // Dependabot 2026-10-16: the Gradle plugin classpath pulls bcprov-jdk18on 1.79
+      // (via com.android.tools:sdk-common 32.1.1 from AGP) and httpclient 4.5.6 (via httpmime).
+      // Force patched versions. Build-time only: never packaged into the app.
+      force("org.bouncycastle:bcprov-jdk18on:1.85")
+      force("org.apache.httpcomponents:httpclient:4.5.14")
+    }
+  }
+}
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
@@ -17,8 +29,8 @@ android {
     applicationId = "com.aistudio.sensorguard.prvsec"
     minSdk = 24
     targetSdk = 36
-    versionCode = 41
-    versionName = "1.4.11"
+    versionCode = 42
+    versionName = "1.4.12"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
