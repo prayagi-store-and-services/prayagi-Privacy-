@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Security patch check card (v1.4.15)
+
+New card on the policy screen: the phone's own Android security patch level (Build.VERSION.SECURITY_PATCH, no permission needed) next to the newest level known when this app version was built, with the source named and dated (Google Android Security Bulletin - September 2026, checked 17 Oct 2026). The card says plainly that an app cannot install or integrate an OS security patch - only the phone's system update can - and offers one tap to the system update settings. When the phone reports no readable level, the card says Unavailable instead of guessing. The comparison is month-based: patch levels inside the same bulletin month count as up to date. No network call, no stored data, nothing leaves the phone.
+
 ## Background mic blocking via Shizuku (v1.4.14)
 
 New opt-in Level 2 next to the background-mic alerts: a background app that grabs the microphone while the screen is on hears silence instead of real audio until the user opens that app again. It works through the free, open-source Shizuku app: Shizuku runs as Android's shell user and the app asks it to set App Ops (`appops set <pkg> RECORD_AUDIO ignore|allow`). An ignored app keeps its Microphone permission but receives zeros; "allow" restores normal capture. No root, no hidden-API bypass, no patched system.
