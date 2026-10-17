@@ -70,6 +70,7 @@ class SensorGuardService : Service() {
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     private var appOpsManager: AppOpsManager? = null
+    private val backgroundMicAlerter by lazy { BackgroundMicAlerter(this) }
     private var audioManager: AudioManager? = null
     private var audioRecordingCallback: AudioManager.AudioRecordingCallback? = null
     private var opActiveChangedListener: AppOpsManager.OnOpActiveChangedListener? = null
@@ -770,6 +771,19 @@ class SensorGuardService : Service() {
         val appStateStr = if (isForeground) "Foreground" else "Background"
 
         val settings = repository.loadSettings()
+
+        // Level 1 background-mic guard: name any app using the mic while it is not on screen.
+        // Deliberately NOT the uid-based isForeground above (only sees our own processes); the
+        // alerter uses Usage access and stays silent when the foreground app is unknown.
+        if (category == LedgerCategory.MICROPHONE && isScreenOn &&
+            currentCallState == CallStateEnum.IDLE && settings.backgroundMicAlertsEnabled
+        ) {
+            try {
+                backgroundMicAlerter.maybeAlert(pkg, appLabel)
+            } catch (e: Exception) {
+                Log.w(TAG, "Background mic alert failed: ${e.message}")
+            }
+        }
 
         val enforcementAction: EnforcementAction
         val policyName: String
