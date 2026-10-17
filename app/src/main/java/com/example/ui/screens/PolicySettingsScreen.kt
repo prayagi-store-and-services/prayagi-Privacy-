@@ -1,6 +1,9 @@
 package com.example.ui.screens
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,17 +48,23 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.AudioLockMode
+import com.example.service.ForegroundAppDetector
 import com.example.service.SensorGuardAdminReceiver
 import com.example.ui.theme.AmberWarning
 import com.example.ui.theme.CrimsonAlert
@@ -321,6 +330,92 @@ fun PolicySettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Background Mic Alerts (Level 1, screen on)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, CyberBorder.copy(alpha = 0.4f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Background Mic Alerts (Screen On)",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Instant alert naming any app that uses the microphone while it is not the app open on your screen. Tapping the alert opens that app's system page so you can revoke its Microphone permission. This detects and names - a normal app cannot block another app's mic. Everything is decided on this phone; nothing is sent anywhere.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                var usageGranted by remember { mutableStateOf(ForegroundAppDetector.hasUsageAccess(context)) }
+                val lifecycleOwner = LocalLifecycleOwner.current
+                DisposableEffect(lifecycleOwner) {
+                    val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                        if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                            usageGranted = ForegroundAppDetector.hasUsageAccess(context)
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Alert on background mic use",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = if (usageGranted) {
+                                "Usage access: granted. One alert per app every 10 minutes at most."
+                            } else {
+                                "Needs one system switch: Usage access, so the app knows which app is in front. Without it alerts stay off."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = guardState.settings.backgroundMicAlertsEnabled,
+                        onCheckedChange = { checked ->
+                            viewModel.updateSettings(guardState.settings.copy(backgroundMicAlertsEnabled = checked))
+                        },
+                        enabled = usageGranted,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = EmeraldSafe,
+                            checkedTrackColor = EmeraldSafe.copy(alpha = 0.3f)
+                        )
+                    )
+                }
+
+                if (!usageGranted) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    FilledTonalButton(
+                        onClick = {
+                            context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Grant Usage access")
+                    }
+                }
+            }
+        }
 
         // Scheduled Guard Windows
         Card(
