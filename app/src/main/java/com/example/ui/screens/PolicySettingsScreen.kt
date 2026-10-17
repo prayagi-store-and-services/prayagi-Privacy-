@@ -65,12 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.AudioLockMode
 import com.example.service.ForegroundAppDetector
-import com.example.service.MicBlockController
 import com.example.service.SecurityPatchCheck
-import com.example.service.ShizukuEnforcer
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.example.service.SensorGuardAdminReceiver
 import com.example.ui.theme.AmberWarning
 import com.example.ui.theme.CrimsonAlert
@@ -78,8 +73,6 @@ import com.example.ui.theme.CyberBorder
 import com.example.ui.theme.EmeraldSafe
 import com.example.ui.theme.NeonCyan
 import com.example.ui.viewmodel.SensorGuardViewModel
-
-private const val SHIZUKU_REQUEST_CODE = 4101
 
 @Composable
 fun PolicySettingsScreen(
@@ -423,119 +416,6 @@ fun PolicySettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Divider(color = CyberBorder.copy(alpha = 0.4f))
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Level 2: actually block background mic through Shizuku (opt-in)
-                val micBlockController = remember { MicBlockController(context) }
-                var shizukuRunning by remember { mutableStateOf(ShizukuEnforcer.isServiceRunning()) }
-                var shizukuGranted by remember { mutableStateOf(ShizukuEnforcer.hasPermission()) }
-                var level2On by remember { mutableStateOf(micBlockController.isEnabled) }
-                val scope = androidx.compose.runtime.rememberCoroutineScope()
-
-                DisposableEffect(lifecycleOwner) {
-                    val shizukuObserver = androidx.lifecycle.LifecycleEventObserver { _, event ->
-                        if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                            shizukuRunning = ShizukuEnforcer.isServiceRunning()
-                            shizukuGranted = ShizukuEnforcer.hasPermission()
-                            level2On = micBlockController.isEnabled
-                        }
-                    }
-                    val permissionListener = rikka.shizuku.Shizuku.OnRequestPermissionResultListener { _, grantResult ->
-                        shizukuGranted = grantResult == android.content.pm.PackageManager.PERMISSION_GRANTED
-                    }
-                    lifecycleOwner.lifecycle.addObserver(shizukuObserver)
-                    try {
-                        rikka.shizuku.Shizuku.addRequestPermissionResultListener(permissionListener)
-                    } catch (e: Exception) { }
-                    onDispose {
-                        lifecycleOwner.lifecycle.removeObserver(shizukuObserver)
-                        try {
-                            rikka.shizuku.Shizuku.removeRequestPermissionResultListener(permissionListener)
-                        } catch (e: Exception) { }
-                    }
-                }
-
-                Text(
-                    text = "Block Background Mic (Level 2, Optional)",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Level 2 blocks instead of only alerting: a background app that grabs the mic hears silence until you open it again. It needs the free, open-source Shizuku app running. Honest conditions: Wireless debugging stays on (a small added attack surface), Shizuku must be started again after every reboot, and Phone, emergency and assistant apps are never blocked. Background calls in chat apps pause until you open that app. If anything goes wrong, switching Level 2 off restores every app's microphone. Everything stays on this phone.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Block background mic via Shizuku",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = when {
-                                !shizukuRunning -> "Shizuku is not running on this phone."
-                                !shizukuGranted -> "Shizuku is running - access not granted yet."
-                                level2On -> "Active. Silenced apps get their mic back when opened."
-                                else -> "Shizuku connected. Ready to enable."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = level2On,
-                        onCheckedChange = { checked ->
-                            scope.launch(Dispatchers.IO) {
-                                micBlockController.setEnabled(checked)
-                                withContext(Dispatchers.Main) { level2On = micBlockController.isEnabled }
-                            }
-                        },
-                        enabled = shizukuRunning && shizukuGranted,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = EmeraldSafe,
-                            checkedTrackColor = EmeraldSafe.copy(alpha = 0.3f)
-                        )
-                    )
-                }
-
-                if (!shizukuRunning) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    FilledTonalButton(
-                        onClick = {
-                            val market = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=moe.shizuku.privileged.api"))
-                            try {
-                                context.startActivity(market.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                            } catch (e: Exception) {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://shizuku.rikka.app/")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Get Shizuku (free, open-source)")
-                    }
-                } else if (!shizukuGranted) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    FilledTonalButton(
-                        onClick = {
-                            try {
-                                rikka.shizuku.Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
-                            } catch (e: Exception) { }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Allow Shizuku access")
-                    }
-                }
             }
         }
 
