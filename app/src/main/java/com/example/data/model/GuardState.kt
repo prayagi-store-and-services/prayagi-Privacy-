@@ -29,6 +29,7 @@ data class GuardSettings(
     val autoGuardOnScreenOff: Boolean = true,
     val allowCallsException: Boolean = true,
     val micGuardEnabled: Boolean = true,
+    val backgroundMicAlertsEnabled: Boolean = true,
     val camGuardEnabled: Boolean = true,
     val screenOffDelaySeconds: Int = 0,
     val soundAlertOnScreenOff: Boolean = false,

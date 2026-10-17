@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Background mic alerts while the screen is on (v1.4.13)
+
+New: when any app uses the microphone while it is not the app open on the screen, the app shows an instant alert naming it, and tapping the alert opens that app's own system page so its Microphone permission can be revoked. Knowing which app is in front needs Android's Usage access, a system switch the user turns on by hand; without it the alerts stay off and the settings screen says so. Phone-call and system packages never alert. At most one alert per app every 10 minutes. Everything is decided on the phone; no app names, usage data or anything else leaves the device. One new declared permission (Usage access); no new library, server or paid service. This is detection plus a fast path to the system's own permission control - a normal app cannot block another app's microphone by itself (that would need root or a Shizuku setup).
+
 ## Daily source build and honest freshness (v1.4.11)
 
 The free GitHub producer is scheduled daily. A successful complete build writes a bounded source manifest with the actual build time, count, size and SHA-256; it uploads a content-addressed archive before updating the manifest pointer. A failed build does not replace the pointer. Older content-addressed archives remain available so an interrupted publication cannot turn a previously read manifest into a missing or different file. Checksums detect corruption; they are not independent publisher signatures. GitHub/repository ownership remains a trust boundary.

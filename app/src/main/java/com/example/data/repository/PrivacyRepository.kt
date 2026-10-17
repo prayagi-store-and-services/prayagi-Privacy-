@@ -88,6 +88,7 @@ class PrivacyRepository(
             autoGuardOnScreenOff = prefs.getBoolean("autoGuardOnScreenOff", true),
             allowCallsException = prefs.getBoolean("allowCallsException", true),
             micGuardEnabled = prefs.getBoolean("micGuardEnabled", true),
+            backgroundMicAlertsEnabled = prefs.getBoolean("backgroundMicAlertsEnabled", true),
             camGuardEnabled = prefs.getBoolean("camGuardEnabled", true),
             screenOffDelaySeconds = prefs.getInt("screenOffDelaySeconds", 0),
             soundAlertOnScreenOff = prefs.getBoolean("soundAlertOnScreenOff", false),
@@ -110,6 +111,7 @@ class PrivacyRepository(
             putBoolean("autoGuardOnScreenOff", newSettings.autoGuardOnScreenOff)
             putBoolean("allowCallsException", newSettings.allowCallsException)
             putBoolean("micGuardEnabled", newSettings.micGuardEnabled)
+            putBoolean("backgroundMicAlertsEnabled", newSettings.backgroundMicAlertsEnabled)
             putBoolean("camGuardEnabled", newSettings.camGuardEnabled)
             putInt("screenOffDelaySeconds", newSettings.screenOffDelaySeconds)
             putBoolean("soundAlertOnScreenOff", newSettings.soundAlertOnScreenOff)
