@@ -1,5 +1,6 @@
 package com.example
 
+import com.example.service.MicBlockController
 import com.example.service.ShizukuEnforcer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -66,5 +67,40 @@ class ShizukuEnforcerTest {
         )
         assertEquals(setOf("com.example.spy"), ignore)
         assertTrue(allow.isEmpty())
+    }
+}
+
+class MicBlockBookkeepingTest {
+
+    @Test fun confirmedIgnoreEntersSetImmediately() {
+        val next = MicBlockController.updatedIgnoredSet(emptySet(), setOf("com.a"), emptySet())
+        assertEquals(setOf("com.a"), next)
+    }
+
+    @Test fun unconfirmedIgnoreDoesNotEnterSet() {
+        // Mid-batch Shizuku loss: second package never attempted, stays out of the tracked set.
+        val next = MicBlockController.updatedIgnoredSet(setOf("com.a"), emptySet(), emptySet())
+        assertEquals(setOf("com.a"), next)
+    }
+
+    @Test fun onlyConfirmedRestoreLeavesSet() {
+        val next = MicBlockController.updatedIgnoredSet(
+            setOf("com.a", "com.b"), emptySet(), setOf("com.a")
+        )
+        assertEquals(setOf("com.b"), next)
+    }
+
+    @Test fun failedRestoreStaysTrackedAndRetryable() {
+        val next = MicBlockController.updatedIgnoredSet(setOf("com.a"), emptySet(), emptySet())
+        assertEquals(setOf("com.a"), next)
+    }
+
+    @Test fun mixedBatchKeepsExactTruth() {
+        val next = MicBlockController.updatedIgnoredSet(
+            setOf("com.old"),
+            ignoreSucceeded = setOf("com.new1"),
+            restoreSucceeded = setOf("com.old")
+        )
+        assertEquals(setOf("com.new1"), next)
     }
 }
