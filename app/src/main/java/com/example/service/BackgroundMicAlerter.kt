@@ -4,9 +4,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.core.app.NotificationCompat
+import com.example.MainActivity
 import com.example.R
 import com.example.SensorGuardApplication
 
@@ -33,13 +32,12 @@ class BackgroundMicAlerter(private val context: Context) {
     }
 
     private fun postNotification(pkg: String, appLabel: String) {
-        // setPackage makes the intent explicit to the system Settings app: an implicit
-        // PendingIntent could otherwise be intercepted by another app (CodeQL high).
-        val settingsIntent = Intent(
-            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-            Uri.fromParts("package", pkg, null)
-        ).apply {
-            setPackage("com.android.settings")
+        // Explicit PendingIntent to our own MainActivity, which then opens the offender's
+        // system page itself. An implicit intent inside a PendingIntent could be intercepted
+        // by another app (CodeQL high), so the PendingIntent must name our component.
+        val settingsIntent = Intent(context, MainActivity::class.java).apply {
+            action = MainActivity.ACTION_OPEN_APP_SETTINGS
+            putExtra(MainActivity.EXTRA_PACKAGE_NAME, pkg)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         val settingsPendingIntent = PendingIntent.getActivity(
