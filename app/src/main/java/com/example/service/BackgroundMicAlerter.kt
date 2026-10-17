@@ -33,10 +33,15 @@ class BackgroundMicAlerter(private val context: Context) {
     }
 
     private fun postNotification(pkg: String, appLabel: String) {
+        // setPackage makes the intent explicit to the system Settings app: an implicit
+        // PendingIntent could otherwise be intercepted by another app (CodeQL high).
         val settingsIntent = Intent(
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
             Uri.fromParts("package", pkg, null)
-        ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+        ).apply {
+            setPackage("com.android.settings")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
         val settingsPendingIntent = PendingIntent.getActivity(
             context,
             pkg.hashCode(),
