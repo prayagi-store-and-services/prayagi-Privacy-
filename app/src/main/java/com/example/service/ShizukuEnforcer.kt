@@ -34,20 +34,29 @@ object ShizukuEnforcer {
         false
     }
 
-    /** True only when the shell accepted every requested mode change. */
-    fun setMicModes(commands: List<Pair<String, Boolean>>): Boolean {
-        if (commands.isEmpty()) return true
-        if (!hasPermission()) return false
-        return try {
-            val script = commands.joinToString(" ; ") { (pkg, allow) ->
-                "appops set $pkg RECORD_AUDIO ${if (allow) "allow" else "ignore"}"
+    /**
+     * Applies and VERIFIES each package's mode independently: one shell call per package runs
+     * `appops set` followed by `appops get`, and the package counts as done only when the read-back
+     * shows the requested mode. Returns per-package success; a package missing from the map or
+     * mapped to false must be treated as not applied (retryable). Never batch-judge by one exit
+     * code: a mid-batch failure would otherwise misrecord which apps are silenced.
+     */
+    fun setMicModesVerified(commands: List<Pair<String, Boolean>>): Map<String, Boolean> {
+        val results = mutableMapOf<String, Boolean>()
+        if (commands.isEmpty() || !hasPermission()) return results
+        for ((pkg, allow) in commands) {
+            val mode = if (allow) "allow" else "ignore"
+            results[pkg] = try {
+                val process = newShellProcess("appops set $pkg RECORD_AUDIO $mode ; appops get $pkg RECORD_AUDIO") ?: return results
+                val output = process.inputStream.bufferedReader().readText()
+                process.waitFor()
+                process.exitValue() == 0 && output.contains("RECORD_AUDIO: $mode")
+            } catch (e: Throwable) {
+                return results
             }
-            val process = newShellProcess(script) ?: return false
-            process.waitFor()
-            process.exitValue() == 0
-        } catch (e: Throwable) {
-            false
+            if (!results.getValue(pkg)) return results
         }
+        return results
     }
 
     /**
