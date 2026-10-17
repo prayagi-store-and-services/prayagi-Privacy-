@@ -16,8 +16,8 @@ import android.os.Build
 object SecurityPatchCheck {
 
     /** Newest Android security patch level known at the time this app version was built. */
-    const val LATEST_KNOWN_PATCH = "2026-09-05"
-    const val LATEST_KNOWN_SOURCE = "Google Android Security Bulletin - September 2026"
+    const val LATEST_KNOWN_PATCH = "2026-10-01"
+    const val LATEST_KNOWN_SOURCE = "Google Android Security Bulletin - October 2026"
     const val LATEST_KNOWN_SOURCE_DATE = "checked 17 Oct 2026"
 
     enum class Status { UP_TO_DATE, BEHIND, UNKNOWN }

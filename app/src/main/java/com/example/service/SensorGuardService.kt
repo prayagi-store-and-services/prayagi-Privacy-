@@ -71,8 +71,6 @@ class SensorGuardService : Service() {
 
     private var appOpsManager: AppOpsManager? = null
     private val backgroundMicAlerter by lazy { BackgroundMicAlerter(this) }
-    private val micBlockController by lazy { MicBlockController(this) }
-    private var micBlockReconcileJob: kotlinx.coroutines.Job? = null
     private var audioManager: AudioManager? = null
     private var audioRecordingCallback: AudioManager.AudioRecordingCallback? = null
     private var opActiveChangedListener: AppOpsManager.OnOpActiveChangedListener? = null
@@ -142,23 +140,6 @@ class SensorGuardService : Service() {
         registerTelephonyListener()
         registerSensorActivityMonitoring()
         registerCameraWatchdog()
-
-        // Level 2 reconcile: every 15 s while the screen is on, restore the mic of a blocked
-        // app that the user has since opened. Pure reconcile pass (no new blocking here).
-        micBlockReconcileJob = serviceScope.launch(Dispatchers.Default) {
-            while (true) {
-                kotlinx.coroutines.delay(15_000L)
-                try {
-                    val screenOn = currentScreenState == ScreenStateEnum.SCREEN_ON ||
-                        currentScreenState == ScreenStateEnum.SCREEN_UNLOCKED
-                    if (micBlockController.isEnabled && screenOn && currentCallState == CallStateEnum.IDLE) {
-                        micBlockController.onMicEvent(emptySet(), ForegroundAppDetector.foregroundPackage(this@SensorGuardService))
-                    }
-                } catch (e: Exception) {
-                    Log.w(TAG, "Mic block reconcile failed: ${e.message}")
-                }
-            }
-        }
 
         repository.updateServiceState(true)
         repository.recordEvent(
@@ -804,22 +785,7 @@ class SensorGuardService : Service() {
             }
         }
 
-        // Level 2 background-mic enforcement (opt-in, Shizuku): silence the background mic user
-        // through appops and restore whichever blocked app comes to the foreground. Runs off the
-        // main thread because the Shizuku shell call blocks.
-        if (category == LedgerCategory.MICROPHONE && isScreenOn &&
-            currentCallState == CallStateEnum.IDLE && micBlockController.isEnabled
-        ) {
-            serviceScope.launch(Dispatchers.Default) {
-                try {
-                    micBlockController.onMicEvent(setOf(pkg), ForegroundAppDetector.foregroundPackage(this@SensorGuardService))
-                } catch (e: Exception) {
-                    Log.w(TAG, "Mic block failed: ${e.message}")
-                }
-            }
-        }
-
-        val enforcementAction: EnforcementAction
+val enforcementAction: EnforcementAction
         val policyName: String
         val resultStr: String
         val riskLevel: LedgerRisk
@@ -927,11 +893,6 @@ class SensorGuardService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        micBlockReconcileJob?.cancel()
-        // Guard stopped: give every silenced app its microphone back (best effort; needs Shizuku).
-        if (micBlockController.isEnabled) {
-            Thread { micBlockController.restoreAll() }.start()
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && opActiveChangedListener != null) {
             try {
                 appOpsManager?.stopWatchingActive(opActiveChangedListener!!)

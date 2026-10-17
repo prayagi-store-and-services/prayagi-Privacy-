@@ -29,8 +29,8 @@ android {
     applicationId = "com.aistudio.sensorguard.prvsec"
     minSdk = 24
     targetSdk = 36
-    versionCode = 45
-    versionName = "1.4.15"
+    versionCode = 46
+    versionName = "1.4.16"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -113,7 +113,6 @@ dependencies {
   implementation(libs.androidx.compose.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.core.ktx)
-  implementation(libs.shizuku.api)
   implementation(libs.androidx.work.runtime.ktx)
   // implementation(libs.androidx.datastore.preferences)
   implementation(libs.androidx.lifecycle.runtime.compose)
