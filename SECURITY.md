@@ -1,16 +1,12 @@
 # Security notes - SensorGuard
 
+## Shizuku background-mic blocking removed (v1.4.16)
+
+The opt-in Level 2 background-mic blocking through Shizuku (added in v1.4.14 earlier today) is removed completely on the owner's decision: the setup (install and start Shizuku, keep Wireless debugging on, restart after every reboot) is too easy to get wrong, and a wrong setup can leave apps silently muted. The Level 1 background-mic alerts and the security patch card stay. All Shizuku code, the settings card section, the Shizuku permission and the library are gone. Honest escape hatch for anyone who enabled Level 2 in v1.4.14 or v1.4.15: if an app's microphone seems silent, open system Settings > Apps > that app > Permissions > Microphone and toggle it off and on, or reinstall that app - both reset the block. Also in this version: the patch card's newest-known level moves to 2026-10-01 (Google Android Security Bulletin - October 2026, checked 17 Oct 2026; the October bulletin has a single patch level), after the standing 7-day stability watch found no crash reports and no stable-channel rollout problems.
+
 ## Security patch check card (v1.4.15)
 
 New card on the policy screen: the phone's own Android security patch level (Build.VERSION.SECURITY_PATCH, no permission needed) next to the newest level known when this app version was built, with the source named and dated (Google Android Security Bulletin - September 2026, checked 17 Oct 2026). The card says plainly that an app cannot install or integrate an OS security patch - only the phone's system update can - and offers one tap to the system update settings. When the phone reports no readable level, the card says Unavailable instead of guessing. The comparison is month-based: patch levels inside the same bulletin month count as up to date. No network call, no stored data, nothing leaves the phone.
-
-## Background mic blocking via Shizuku (v1.4.14)
-
-New opt-in Level 2 next to the background-mic alerts: a background app that grabs the microphone while the screen is on hears silence instead of real audio until the user opens that app again. It works through the free, open-source Shizuku app: Shizuku runs as Android's shell user and the app asks it to set App Ops (`appops set <pkg> RECORD_AUDIO ignore|allow`). An ignored app keeps its Microphone permission but receives zeros; "allow" restores normal capture. No root, no hidden-API bypass, no patched system.
-
-Conditions are shown in the settings screen before enabling: Shizuku must be installed and started (Wireless debugging on Android 11+, which stays on and is a small added attack surface); Shizuku must be started again after every reboot; Phone, emergency, system UI and Assistant packages are never blocked; background calls in chat apps are muted until that app is opened (the mic returns within seconds, checked by a 15-second reconcile pass). If Shizuku stops while apps are silenced, those apps keep getting silence until Shizuku runs again and Level 2 is toggled off and on, or the app's Microphone permission is toggled in system settings - both reset the block. Switching Level 2 off or stopping the guard restores every silenced app. When Usage access is off and the foreground app is unknown, nothing is ever blocked.
-
-One new declared permission (Shizuku API) and one new library (dev.rikka.shizuku:api, Apache-2.0). No server, no account, no data leaves the phone: the silenced-app list lives only in the app's private storage.
 
 ## Background mic alerts while the screen is on (v1.4.13)
 
