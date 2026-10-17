@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.model.AudioLockMode
 import com.example.service.ForegroundAppDetector
 import com.example.service.MicBlockController
+import com.example.service.SecurityPatchCheck
 import com.example.service.ShizukuEnforcer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -537,6 +538,78 @@ fun PolicySettingsScreen(
                 }
             }
         }
+
+        // Security Patch Check
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, CyberBorder.copy(alpha = 0.4f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                val patchResult = remember { SecurityPatchCheck.check() }
+                Text(
+                    text = "Security Patch Check",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Your phone's Android security patch level, compared with the newest level known when this app version was built. An app cannot install OS patches - only the phone's own system update can. Nothing is checked online and nothing leaves the phone.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Phone's patch level: ${patchResult.devicePatch ?: "Unavailable"}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Newest known: ${SecurityPatchCheck.LATEST_KNOWN_PATCH} (${SecurityPatchCheck.LATEST_KNOWN_SOURCE}, ${SecurityPatchCheck.LATEST_KNOWN_SOURCE_DATE})",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = when (patchResult.status) {
+                        SecurityPatchCheck.Status.UP_TO_DATE ->
+                            "Up to date as far as this app knows."
+                        SecurityPatchCheck.Status.BEHIND ->
+                            "About ${patchResult.monthsBehind} month(s) behind the newest known level. Open system update and install what your phone offers."
+                        SecurityPatchCheck.Status.UNKNOWN ->
+                            "Unavailable - the phone did not report a readable patch level."
+                    },
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = when (patchResult.status) {
+                        SecurityPatchCheck.Status.UP_TO_DATE -> EmeraldSafe
+                        SecurityPatchCheck.Status.BEHIND -> Color(0xFFE0A83C)
+                        SecurityPatchCheck.Status.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                FilledTonalButton(
+                    onClick = {
+                        try {
+                            context.startActivity(Intent("android.settings.SYSTEM_UPDATE_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        } catch (e: Exception) {
+                            try {
+                                context.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            } catch (e2: Exception) {
+                                context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Open system update settings")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Scheduled Guard Windows
         Card(
