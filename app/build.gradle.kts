@@ -29,8 +29,8 @@ android {
     applicationId = "com.aistudio.sensorguard.prvsec"
     minSdk = 24
     targetSdk = 36
-    versionCode = 44
-    versionName = "1.4.14"
+    versionCode = 45
+    versionName = "1.4.15"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
