@@ -1,5 +1,11 @@
 # Security notes - SensorGuard
 
+## Level 2 per-app verification fix + October patch level (v1.4.16)
+
+Fix in the Shizuku background-mic blocking (v1.4.14): appops changes are now applied and verified per app, one at a time, with a read-back (`appops set` then `appops get`) before the app records anything. Previously one batch shared a single pass/fail, so a mid-batch failure could misrecord which apps were silenced; a silenced app could then be missed by the restore step. Now each successful silence is stored immediately, only individually confirmed restores are cleared, and anything unconfirmed stays tracked and is retried by the 15-second reconcile pass.
+
+Also: the security patch card's newest-known level moves to 2026-10-01 (Google Android Security Bulletin - October 2026, checked 17 Oct 2026; the October bulletin has a single patch level). Shipped after the standing 7-day stability watch: no crash or feedback reports and no stable-channel rollout problems found. Reminder of the honest limit: the card detects and guides; it cannot install OS patches.
+
 ## Security patch check card (v1.4.15)
 
 New card on the policy screen: the phone's own Android security patch level (Build.VERSION.SECURITY_PATCH, no permission needed) next to the newest level known when this app version was built, with the source named and dated (Google Android Security Bulletin - September 2026, checked 17 Oct 2026). The card says plainly that an app cannot install or integrate an OS security patch - only the phone's system update can - and offers one tap to the system update settings. When the phone reports no readable level, the card says Unavailable instead of guessing. The comparison is month-based: patch levels inside the same bulletin month count as up to date. No network call, no stored data, nothing leaves the phone.
