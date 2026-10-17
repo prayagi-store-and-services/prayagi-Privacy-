@@ -45,30 +45,42 @@ class MicBlockController(context: Context) {
 
     private fun apply(toIgnore: Set<String>, toAllow: Set<String>) {
         if (toIgnore.isEmpty() && toAllow.isEmpty()) return
-        val commands = toIgnore.map { it to false } + toAllow.map { it to true }
-        if (!ShizukuEnforcer.setMicModes(commands)) {
-            Log.w(TAG, "appops update failed (Shizuku not running or permission missing)")
-            return
+        // Per-package verified results only: a package enters the silenced set when its ignore is
+        // confirmed, and leaves it only when its own restore is confirmed. Anything unconfirmed
+        // stays exactly as it was, so a later pass can retry it.
+        val results = ShizukuEnforcer.setMicModesVerified(
+            toIgnore.map { it to false } + toAllow.map { it to true }
+        )
+        val ignoreSucceeded = toIgnore.filter { results[it] == true }.toSet()
+        val restoreSucceeded = toAllow.filter { results[it] == true }.toSet()
+        if (results.size < toIgnore.size + toAllow.size || results.containsValue(false)) {
+            Log.w(TAG, "partial appops batch: ${results.size}/${toIgnore.size + toAllow.size} attempted, failed or skipped stay retryable")
         }
+        persist(updatedIgnoredSet(ignoredPackages(), ignoreSucceeded, restoreSucceeded))
+    }
+
+    private fun persist(newSet: Set<String>) {
         synchronized(ignored) {
-            ignored.addAll(toIgnore)
-            ignored.removeAll(toAllow)
-            prefs.edit().putStringSet(KEY_IGNORED, ignored.toSet()).apply()
+            ignored.clear()
+            ignored.addAll(newSet)
+            if (newSet.isEmpty()) {
+                prefs.edit().remove(KEY_IGNORED).apply()
+            } else {
+                prefs.edit().putStringSet(KEY_IGNORED, newSet).apply()
+            }
         }
     }
 
-    /** Restores the microphone for every app this controller silenced. */
+    /** Restores the microphone for every app this controller silenced; unconfirmed ones stay tracked and retryable. */
     fun restoreAll() {
         val all = ignoredPackages()
         if (all.isEmpty()) return
-        if (ShizukuEnforcer.setMicModes(all.map { it to true })) {
-            synchronized(ignored) {
-                ignored.clear()
-                prefs.edit().remove(KEY_IGNORED).apply()
-            }
-        } else {
-            Log.w(TAG, "restoreAll failed; will retry on next start")
+        val results = ShizukuEnforcer.setMicModesVerified(all.map { it to true })
+        val restored = all.filter { results[it] == true }.toSet()
+        if (restored.size < all.size) {
+            Log.w(TAG, "restoreAll: ${all.size - restored.size} package(s) not confirmed; kept for retry")
         }
+        persist(updatedIgnoredSet(all, emptySet(), restored))
     }
 
     companion object {
@@ -76,5 +88,13 @@ class MicBlockController(context: Context) {
         private const val PREFS_NAME = "mic_block_state"
         private const val KEY_ENABLED = "enabled"
         private const val KEY_IGNORED = "ignored_pkgs"
+
+        /** Pure bookkeeping so it can be unit tested: add confirmed ignores, drop confirmed restores. */
+        fun updatedIgnoredSet(
+            current: Set<String>,
+            ignoreSucceeded: Set<String>,
+            restoreSucceeded: Set<String>
+        ): Set<String> = (current + ignoreSucceeded) - restoreSucceeded
     }
+
 }
