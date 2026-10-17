@@ -1,5 +1,13 @@
 # Security notes - SensorGuard
 
+## Background mic blocking via Shizuku (v1.4.14)
+
+New opt-in Level 2 next to the background-mic alerts: a background app that grabs the microphone while the screen is on hears silence instead of real audio until the user opens that app again. It works through the free, open-source Shizuku app: Shizuku runs as Android's shell user and the app asks it to set App Ops (`appops set <pkg> RECORD_AUDIO ignore|allow`). An ignored app keeps its Microphone permission but receives zeros; "allow" restores normal capture. No root, no hidden-API bypass, no patched system.
+
+Conditions are shown in the settings screen before enabling: Shizuku must be installed and started (Wireless debugging on Android 11+, which stays on and is a small added attack surface); Shizuku must be started again after every reboot; Phone, emergency, system UI and Assistant packages are never blocked; background calls in chat apps are muted until that app is opened (the mic returns within seconds, checked by a 15-second reconcile pass). If Shizuku stops while apps are silenced, those apps keep getting silence until Shizuku runs again and Level 2 is toggled off and on, or the app's Microphone permission is toggled in system settings - both reset the block. Switching Level 2 off or stopping the guard restores every silenced app. When Usage access is off and the foreground app is unknown, nothing is ever blocked.
+
+One new declared permission (Shizuku API) and one new library (dev.rikka.shizuku:api, Apache-2.0). No server, no account, no data leaves the phone: the silenced-app list lives only in the app's private storage.
+
 ## Background mic alerts while the screen is on (v1.4.13)
 
 New: when any app uses the microphone while it is not the app open on the screen, the app shows an instant alert naming it, and tapping the alert opens that app's own system page so its Microphone permission can be revoked. Knowing which app is in front needs Android's Usage access, a system switch the user turns on by hand; without it the alerts stay off and the settings screen says so. Phone-call and system packages never alert. At most one alert per app every 10 minutes. Everything is decided on the phone; no app names, usage data or anything else leaves the device. One new declared permission (Usage access); no new library, server or paid service. This is detection plus a fast path to the system's own permission control - a normal app cannot block another app's microphone by itself (that would need root or a Shizuku setup).
