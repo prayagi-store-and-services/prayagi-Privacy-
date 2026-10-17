@@ -42,11 +42,32 @@ object ShizukuEnforcer {
             val script = commands.joinToString(" ; ") { (pkg, allow) ->
                 "appops set $pkg RECORD_AUDIO ${if (allow) "allow" else "ignore"}"
             }
-            val process = Shizuku.newProcess(arrayOf("sh", "-c", script), null, null)
+            val process = newShellProcess(script) ?: return false
             process.waitFor()
             process.exitValue() == 0
         } catch (e: Throwable) {
             false
+        }
+    }
+
+    /**
+     * Runs a one-shot shell command as Shizuku's shell user. Shizuku API 13 made newProcess
+     * private (deprecated in favor of a full UserService); for single commands the documented
+     * fallback is calling it by reflection. ShizukuRemoteProcess extends java.lang.Process,
+     * so the cast to the public Process type is safe. Returns null on any failure.
+     */
+    private fun newShellProcess(script: String): Process? {
+        return try {
+            val method = Shizuku::class.java.getDeclaredMethod(
+                "newProcess",
+                Array<String>::class.java,
+                Array<String>::class.java,
+                String::class.java
+            )
+            method.isAccessible = true
+            method.invoke(null, arrayOf("sh", "-c", script), null, null) as Process
+        } catch (e: Throwable) {
+            null
         }
     }
 
