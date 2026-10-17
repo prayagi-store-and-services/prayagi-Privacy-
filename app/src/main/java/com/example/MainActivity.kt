@@ -65,6 +65,29 @@ import androidx.core.content.ContextCompat
 
 open class MainActivity : ComponentActivity() {
 
+    companion object {
+        const val ACTION_OPEN_APP_SETTINGS = "com.example.action.OPEN_APP_SETTINGS"
+        const val EXTRA_PACKAGE_NAME = "com.example.extra.PACKAGE_NAME"
+    }
+
+    /** Tapping a background-mic alert lands here; we open that app's system page ourselves. */
+    private fun handleOpenAppSettings(intent: android.content.Intent?) {
+        if (intent?.action != ACTION_OPEN_APP_SETTINGS) return
+        val pkg = intent.getStringExtra(EXTRA_PACKAGE_NAME) ?: return
+        intent.action = null
+        intent.removeExtra(EXTRA_PACKAGE_NAME)
+        try {
+            startActivity(
+                android.content.Intent(
+                    android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    android.net.Uri.fromParts("package", pkg, null)
+                ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (e: Exception) {
+            // System settings unavailable on this device; nothing more we can do.
+        }
+    }
+
     private val viewModel: SensorGuardViewModel by viewModels {
         val app = application as SensorGuardApplication
         SensorGuardViewModel.Factory(
@@ -76,6 +99,7 @@ open class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         com.example.update.UpdateAlert.handle(this, intent)
+        handleOpenAppSettings(intent)
     }
 
     override fun onResume() {
@@ -85,6 +109,7 @@ open class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleOpenAppSettings(intent)
         if (com.example.geo.GeoGuard.isBlocked(this)) {
             val pad = (24 * resources.displayMetrics.density).toInt()
             val box = android.widget.LinearLayout(this).apply {
