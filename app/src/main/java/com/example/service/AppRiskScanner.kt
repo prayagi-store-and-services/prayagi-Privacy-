@@ -4,8 +4,10 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.pm.PackageManager
 import android.os.Build
+import android.view.accessibility.AccessibilityManager
 import com.example.data.model.AppRiskInfo
 import com.example.data.model.RiskLevel
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +18,19 @@ class AppRiskScanner(private val context: Context) {
     suspend fun scanInstalledApps(): List<AppRiskInfo> = withContext(Dispatchers.IO) {
         val packageManager = context.packageManager
         val appsList = mutableListOf<AppRiskInfo>()
+
+        // S3: packages with an accessibility service currently ENABLED.
+        // Read once up front; never throws - an empty set just means no flag.
+        val enabledAccessibilityPackages: Set<String> = try {
+            val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+            am?.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+                ?.mapNotNull { it.resolveInfo?.serviceInfo?.packageName }
+                ?.toSet()
+                ?: emptySet()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptySet()
+        }
 
         try {
             val flags = PackageManager.GET_PERMISSIONS
@@ -85,6 +100,14 @@ class AppRiskScanner(private val context: Context) {
                     riskFactors.add("Simultaneous Audio & Visual Capture")
                 }
 
+                // S3: an ENABLED accessibility service can read the whole screen
+                // (including passwords and OTPs) and tap for the user - warn plainly.
+                val hasA11y = enabledAccessibilityPackages.contains(pkg.packageName)
+                if (hasA11y) {
+                    score += 45
+                    riskFactors.add("Accessibility Service Active - can read your screen and tap for you")
+                }
+
                 score = score.coerceIn(0, 100)
 
                 val riskLevel = when {
@@ -109,6 +132,7 @@ class AppRiskScanner(private val context: Context) {
                             hasContactsPermission = hasContacts,
                             hasSmsPermission = hasSms,
                             hasOverlayPermission = hasOverlay,
+                            hasEnabledAccessibilityService = hasA11y,
                             riskScore = score,
                             riskLevel = riskLevel,
                             riskFactors = riskFactors
