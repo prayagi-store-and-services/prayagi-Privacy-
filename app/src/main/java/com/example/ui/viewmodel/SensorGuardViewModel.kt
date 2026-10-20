@@ -11,6 +11,7 @@ import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.data.model.AccessibilityRiskApp
 import com.example.data.model.AppRiskInfo
 import com.example.data.model.EnforcementAction
 import com.example.data.model.GuardSettings
@@ -18,6 +19,7 @@ import com.example.data.model.LiveGuardState
 import com.example.data.model.PrivacyEvent
 import com.example.data.model.RiskLevel
 import com.example.data.repository.PrivacyRepository
+import com.example.service.AccessibilityServiceScanner
 import com.example.service.AppRiskScanner
 import com.example.service.SensorGuardAdminReceiver
 import com.example.service.SensorGuardService
@@ -44,7 +46,8 @@ data class DailyEnforcementStats(
 
 class SensorGuardViewModel(
     private val repository: PrivacyRepository,
-    private val appRiskScanner: AppRiskScanner
+    private val appRiskScanner: AppRiskScanner,
+    private val accessibilityServiceScanner: AccessibilityServiceScanner
 ) : ViewModel() {
 
     val guardState: StateFlow<LiveGuardState> = repository.guardState
@@ -100,6 +103,11 @@ class SensorGuardViewModel(
 
     private val _scannedApps = MutableStateFlow<List<AppRiskInfo>>(emptyList())
     val scannedApps: StateFlow<List<AppRiskInfo>> = _scannedApps.asStateFlow()
+
+    // S3: apps that currently have an accessibility service ENABLED.
+    // Empty list means nothing enabled - the dashboard warning card stays hidden.
+    private val _accessibilityApps = MutableStateFlow<List<AccessibilityRiskApp>>(emptyList())
+    val accessibilityApps: StateFlow<List<AccessibilityRiskApp>> = _accessibilityApps.asStateFlow()
 
     private val _isScanning = MutableStateFlow(false)
     val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
@@ -197,6 +205,7 @@ class SensorGuardViewModel(
             try {
                 val list = appRiskScanner.scanInstalledApps()
                 _scannedApps.value = list
+                _accessibilityApps.value = accessibilityServiceScanner.scanEnabledAccessibilityApps()
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
@@ -338,12 +347,13 @@ class SensorGuardViewModel(
 
     class Factory(
         private val repository: PrivacyRepository,
-        private val appRiskScanner: AppRiskScanner
+        private val appRiskScanner: AppRiskScanner,
+        private val accessibilityServiceScanner: AccessibilityServiceScanner
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(SensorGuardViewModel::class.java)) {
-                return SensorGuardViewModel(repository, appRiskScanner) as T
+                return SensorGuardViewModel(repository, appRiskScanner, accessibilityServiceScanner) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
