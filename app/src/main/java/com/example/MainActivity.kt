@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.platform.testTag
+import com.example.service.AccessibilityServiceScanner
 import com.example.service.AppRiskScanner
 import com.example.camcheck.CameraCheckScreen
 import com.example.siteblock.SiteBlockingScreen
@@ -92,7 +93,8 @@ open class MainActivity : ComponentActivity() {
         val app = application as SensorGuardApplication
         SensorGuardViewModel.Factory(
             repository = app.repository,
-            appRiskScanner = AppRiskScanner(this)
+            appRiskScanner = AppRiskScanner(this),
+            accessibilityServiceScanner = AccessibilityServiceScanner(this)
         )
     }
 
