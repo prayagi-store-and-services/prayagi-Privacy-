@@ -1,5 +1,12 @@
 package com.example.data.model
 
+/** An app that currently has an accessibility service ENABLED. */
+data class AccessibilityRiskApp(
+    val packageName: String,
+    val appName: String,
+    val isSystemApp: Boolean
+)
+
 data class AppRiskInfo(
     val packageName: String,
     val appName: String,
@@ -11,6 +18,7 @@ data class AppRiskInfo(
     val hasContactsPermission: Boolean,
     val hasSmsPermission: Boolean,
     val hasOverlayPermission: Boolean,
+    val hasEnabledAccessibilityService: Boolean = false,
     val riskScore: Int, // 0 - 100
     val riskLevel: RiskLevel,
     val riskFactors: List<String>
