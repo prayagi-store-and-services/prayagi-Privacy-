@@ -1,6 +1,8 @@
 package com.example.ui.screens
 
 import android.app.Activity
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.ScreenLockPortrait
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -64,6 +67,7 @@ import com.example.ui.theme.CrimsonAlert
 import com.example.ui.theme.CyberBorder
 import com.example.ui.theme.EmeraldSafe
 import com.example.ui.theme.NeonCyan
+import com.example.service.AccessibilityServiceScanner
 import com.example.ui.viewmodel.SensorGuardViewModel
 
 @Composable
@@ -79,6 +83,7 @@ fun DashboardScreen(
     val guardState by viewModel.guardState.collectAsState()
     val events by viewModel.allEvents.collectAsState()
     val dailyStats by viewModel.dailyStats.collectAsState()
+    val accessibilityApps by viewModel.accessibilityApps.collectAsState()
     val selectedDateEvents by viewModel.selectedDateEvents.collectAsState()
     val selectedDateText = viewModel.getFormattedSelectedDate()
     val isToday = viewModel.isSelectedDateToday()
@@ -250,6 +255,98 @@ fun DashboardScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // S3: Accessibility warning. Hidden unless an app currently has an
+        // accessibility service ENABLED - no empty cards.
+        val accessibilityWarning = AccessibilityServiceScanner.buildWarningSummary(accessibilityApps)
+        if (accessibilityWarning != null) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("accessibility_warning_card"),
+                colors = CardDefaults.cardColors(
+                    containerColor = CrimsonAlert.copy(alpha = 0.15f)
+                ),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, CrimsonAlert)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(CrimsonAlert.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Visibility,
+                                contentDescription = "Accessibility warning",
+                                tint = CrimsonAlert,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Accessibility Warning",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
+                            color = CrimsonAlert
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = accessibilityWarning,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    accessibilityApps.forEach { app ->
+                        Row(modifier = Modifier.padding(vertical = 2.dp)) {
+                            Text(text = "• ", color = CrimsonAlert)
+                            Text(
+                                text = app.appName + if (app.isSystemApp) " (pre-installed)" else "",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Button(
+                        onClick = {
+                            context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("accessibility_warning_settings_button"),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = CrimsonAlert,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.OpenInNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "OPEN ACCESSIBILITY SETTINGS",
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         // Daily Enforcement Dashboard (Mandatory Component with Date Isolation)
         DailyEnforcementDashboard(
