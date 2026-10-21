@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## App list shows who can really draw over other apps (v1.4.20)
+
+The app list used to tag every app that only ASKS for "Display over other apps". It now reads the phone's own setting (app-ops, read-only, no new permission) and shows "Overlay ON" only for apps that are allowed right now, and "Overlay asked" for the rest. Nothing is changed, blocked or sent anywhere; if the phone refuses to answer for an app, it is shown as not allowed. Overlays are a common trick for fake login screens, so this makes the real risk visible.
+
 ## Verified web link (v1.4.19)
 
 The app now declares a verified web link for its own page, https://prayagi-store-and-services.github.io/netra-eco/app/privacy. Android opens the link in the app only when the website's assetlinks.json confirms this app's package and signing certificate; otherwise the link stays in the browser. The link is only an entry point: no screen reads data from it, nothing is stored or sent. No new permission, library or server.
