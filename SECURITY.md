@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Verified web link (v1.4.19)
+
+The app now declares a verified web link for its own page, https://prayagi-store-and-services.github.io/netra-eco/app/privacy. Android opens the link in the app only when the website's assetlinks.json confirms this app's package and signing certificate; otherwise the link stays in the browser. The link is only an entry point: no screen reads data from it, nothing is stored or sent. No new permission, library or server.
+
 ## Shizuku background-mic blocking removed (v1.4.16)
 
 The opt-in Level 2 background-mic blocking through Shizuku (added in v1.4.14 earlier today) is removed completely on the owner's decision: the setup (install and start Shizuku, keep Wireless debugging on, restart after every reboot) is too easy to get wrong, and a wrong setup can leave apps silently muted. The Level 1 background-mic alerts and the security patch card stay. All Shizuku code, the settings card section, the Shizuku permission and the library are gone. Honest escape hatch for anyone who enabled Level 2 in v1.4.14 or v1.4.15: if an app's microphone seems silent, open system Settings > Apps > that app > Permissions > Microphone and toggle it off and on, or reinstall that app - both reset the block. Also in this version: the patch card's newest-known level moves to 2026-10-01 (Google Android Security Bulletin - October 2026, checked 17 Oct 2026; the October bulletin has a single patch level), after the standing 7-day stability watch found no crash reports and no stable-channel rollout problems.
