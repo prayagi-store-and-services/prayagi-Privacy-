@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Build source change for the gambling list (v1.4.20)
+
+The gambling part of the site blocklist came from the UT1 site, which now returns 404. The build reads the same UT1 list from its public GitHub mirror (olbat/ut1-blacklists, CC BY-SA 4.0, credit kept in docs/THIRD_PARTY_LISTS.md). Nothing changes in the app at run time: no new permission, no network use on the phone.
+
 ## App list shows who can really draw over other apps (v1.4.20)
 
 The app list used to tag every app that only ASKS for "Display over other apps". It now reads the phone's own setting (app-ops, read-only, no new permission) and shows "Overlay ON" only for apps that are allowed right now, and "Overlay asked" for the rest. Nothing is changed, blocked or sent anywhere; if the phone refuses to answer for an app, it is shown as not allowed. Overlays are a common trick for fake login screens, so this makes the real risk visible.
