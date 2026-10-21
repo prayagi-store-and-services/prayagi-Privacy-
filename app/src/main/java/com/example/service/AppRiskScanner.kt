@@ -15,6 +15,23 @@ import kotlinx.coroutines.withContext
 
 class AppRiskScanner(private val context: Context) {
 
+    /** Reads the app-ops state of "Display over other apps". Never throws; unreadable counts as not allowed. */
+    private fun isOverlayAllowed(pkg: String, uid: Int): Boolean = try {
+        val ops = context.getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
+        @Suppress("DEPRECATION")
+        val mode = ops.checkOpNoThrow("android:system_alert_window", uid, pkg)
+        overlayAllowedFrom(mode, context.packageManager.checkPermission(Manifest.permission.SYSTEM_ALERT_WINDOW, pkg) == PackageManager.PERMISSION_GRANTED)
+    } catch (e: Exception) {
+        false
+    }
+
+    companion object {
+        /** MODE_ALLOWED means on; MODE_DEFAULT falls back to whether the permission is granted. */
+        fun overlayAllowedFrom(mode: Int, permissionGranted: Boolean): Boolean =
+            mode == android.app.AppOpsManager.MODE_ALLOWED ||
+                (mode == android.app.AppOpsManager.MODE_DEFAULT && permissionGranted)
+    }
+
     suspend fun scanInstalledApps(): List<AppRiskInfo> = withContext(Dispatchers.IO) {
         val packageManager = context.packageManager
         val appsList = mutableListOf<AppRiskInfo>()
@@ -89,9 +106,14 @@ class AppRiskScanner(private val context: Context) {
                     score += 10
                     riskFactors.add("SMS Messages Reading")
                 }
+                // S5: separate "asks for it" from "is actually allowed right now".
+                val overlayAllowed = hasOverlay && isOverlayAllowed(pkg.packageName, appInfo.uid)
                 if (hasOverlay) {
                     score += 10
-                    riskFactors.add("Display Over Other Apps")
+                    riskFactors.add(
+                        if (overlayAllowed) "Display Over Other Apps - ALLOWED now, can draw on top of other apps"
+                        else "Display Over Other Apps - asked in manifest, not allowed right now"
+                    )
                 }
 
                 // If non-system app has both mic and camera, add risk multiplier
@@ -133,6 +155,7 @@ class AppRiskScanner(private val context: Context) {
                             hasSmsPermission = hasSms,
                             hasOverlayPermission = hasOverlay,
                             hasEnabledAccessibilityService = hasA11y,
+                            overlayAllowed = overlayAllowed,
                             riskScore = score,
                             riskLevel = riskLevel,
                             riskFactors = riskFactors

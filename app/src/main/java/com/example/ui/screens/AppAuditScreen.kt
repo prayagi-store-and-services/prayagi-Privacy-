@@ -441,7 +441,7 @@ fun AppRiskCard(
                     PermissionBadge(icon = Icons.Default.LocationOn, label = "GPS", color = EmeraldSafe)
                 }
                 if (app.hasOverlayPermission) {
-                    PermissionBadge(icon = Icons.Default.Warning, label = "Overlay", color = CrimsonAlert)
+                    PermissionBadge(icon = Icons.Default.Warning, label = if (app.overlayAllowed) "Overlay ON" else "Overlay asked", color = if (app.overlayAllowed) CrimsonAlert else AmberWarning)
                 }
             }
 

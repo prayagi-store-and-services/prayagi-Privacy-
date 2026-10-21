@@ -19,6 +19,8 @@ data class AppRiskInfo(
     val hasSmsPermission: Boolean,
     val hasOverlayPermission: Boolean,
     val hasEnabledAccessibilityService: Boolean = false,
+    /** True only when the app is actually ALLOWED to draw over other apps right now (not just listed in its manifest). */
+    val overlayAllowed: Boolean = false,
     val riskScore: Int, // 0 - 100
     val riskLevel: RiskLevel,
     val riskFactors: List<String>

@@ -4,16 +4,16 @@
 Sources (see docs/THIRD_PARTY_LISTS.md for licences and credits):
   - BlockList Project porn.txt and gambling.txt (MIT / Unlicense)       https://github.com/blocklistproject/Lists
   - BlockList Project phishing.txt, scam.txt, ransomware.txt (MIT), and malware.txt only when INCLUDE_BL_MALWARE=1 (2.6 million names, size decision pending)
-  - UT1 blacklists gambling (and adult when INCLUDE_UT1_ADULT=1), CC BY-SA 4.0   https://dsi.ut-capitole.fr/blacklists/
+  - UT1 blacklists gambling (and adult when INCLUDE_UT1_ADULT=1), CC BY-SA 4.0   https://github.com/olbat/ut1-blacklists (mirror of the original UT1 site, which is gone)
 
 Output: one domain per line, lower case, sorted, a domain is dropped when a parent of it is already listed
 (the app blocks subdomains of every listed name). Also writes SOURCES.txt next to it with date, counts and sha256.
 Usage: build_blocklist.py <output domains.txt.gz>
 """
-import gzip, hashlib, io, os, sys, tarfile, urllib.request, datetime, json, shutil
+import gzip, hashlib, io, os, sys, urllib.request, datetime, json, shutil
 
 BL = "https://raw.githubusercontent.com/blocklistproject/Lists/master/"
-UT = "https://dsi.ut-capitole.fr/blacklists/download/"
+UT = "https://raw.githubusercontent.com/olbat/ut1-blacklists/master/blacklists/"  # mirror of UT1 (dsi.ut-capitole.fr returns 404 since Oct 2026)
 
 def fetch(url):
     req = urllib.request.Request(url, headers={"User-Agent": "SensorGuard-list-build"})
@@ -35,9 +35,8 @@ def hosts_names(raw):
             out.add(parts[1].lower().rstrip("."))
     return out
 
-def ut1_names(raw, member):
-    with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as t:
-        data = t.extractfile(member).read().decode("utf-8", "ignore")
+def ut1_names(raw, member=None):
+    data = raw.decode("utf-8", "ignore")
     return set(l.strip().lower().rstrip(".") for l in data.splitlines() if l.strip() and not l.startswith("#"))
 
 def valid(n):
@@ -59,14 +58,14 @@ def main():
         s = hosts_names(raw)
         sources.append(("BlockList Project " + fname, BL + fname, hashlib.sha256(raw).hexdigest(), len(s)))
         names |= s
-    raw = fetch(UT + "gambling.tar.gz")
-    s = ut1_names(raw, "gambling/domains")
-    sources.append(("UT1 gambling", UT + "gambling.tar.gz", hashlib.sha256(raw).hexdigest(), len(s)))
+    raw = fetch(UT + "gambling/domains")
+    s = ut1_names(raw)
+    sources.append(("UT1 gambling", UT + "gambling/domains", hashlib.sha256(raw).hexdigest(), len(s)))
     names |= s
     if os.environ.get("INCLUDE_UT1_ADULT") == "1":
-        raw = fetch(UT + "adult.tar.gz")
-        s = ut1_names(raw, "adult/domains")
-        sources.append(("UT1 adult", UT + "adult.tar.gz", hashlib.sha256(raw).hexdigest(), len(s)))
+        raw = fetch(UT + "adult/domains")
+        s = ut1_names(raw)
+        sources.append(("UT1 adult", UT + "adult/domains", hashlib.sha256(raw).hexdigest(), len(s)))
         names |= s
     names = {n for n in names if valid(n)}
     # Official Indian institutions are never blocked, whatever a source list says (same set as OfficialDomains in the app).
