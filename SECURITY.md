@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Fuller crash reports (v1.4.21)
+
+Automatic crash reports used to be cut off before the root cause when an exception was wrapped in others (a crash in KBC showed only the wrappers). The report now keeps a few frames of each wrapper and more frames of the root cause, within a larger size limit (6000 characters). It still holds only class names and code locations, never exception messages. No new permission, library or server. Not a vulnerability fix.
+
 ## Build source change for the gambling list (v1.4.20)
 
 The gambling part of the site blocklist came from the UT1 site, which now returns 404. The build reads the same UT1 list from its public GitHub mirror (olbat/ut1-blacklists, CC BY-SA 4.0, credit kept in docs/THIRD_PARTY_LISTS.md). Nothing changes in the app at run time: no new permission, no network use on the phone.
