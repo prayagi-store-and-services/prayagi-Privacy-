@@ -10,8 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Check exact CSP hashes and source tokens
@@ -50,7 +50,7 @@ jobs:
             assert(scripts.has("'sha256-" + hash + "'"), 'Missing script hash in ' + file);
            }
            const connections = rules.get('connect-src');
-           assert.deepEqual([...connections].sort(), ["'self'", 'https://api.github.com', 'https://abacus.jasoncameron.dev', 'https://firestore.googleapis.com', 'https://formsubmit.co'].sort());
+           assert.deepEqual([...connections].sort(), ["'self'", 'https://api.github.com', 'https://firestore.googleapis.com', 'https://formsubmit.co'].sort());
            assert.deepEqual([...rules.get('frame-src')], ["'self'"]);
            assert(source.indexOf('Content-Security-Policy') < source.indexOf('<script'));
            console.log('PASS exact hashes and directive tokens:', file);
