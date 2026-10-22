@@ -97,14 +97,6 @@ fun DashboardScreen(
             .testTag("dashboard_screen")
     ) {
         com.example.festival.FestivalBannerCard(modifier = Modifier.fillMaxWidth())
-        androidx.compose.material3.OutlinedButton(
-            onClick = onOpenTravelChecking,
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("header_travel_checking")
-        ) { Text("Travel Checking", maxLines = 1) }
-        androidx.compose.material3.OutlinedButton(
-            onClick = onOpenSiteBlocking,
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("header_site_blocking")
-        ) { Text("Block adult and gambling sites", maxLines = 1) }
         // Top Header
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -147,6 +139,10 @@ fun DashboardScreen(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        com.example.ui.components.DashboardToolsCard(onOpenTravelChecking, onOpenSiteBlocking)
 
         Spacer(modifier = Modifier.height(16.dp))
 

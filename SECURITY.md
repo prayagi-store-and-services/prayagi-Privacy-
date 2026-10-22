@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+## Dashboard tools card and TEST alert (v1.4.22)
+
+The Travel Checking and Site Blocking entry points moved into one Tools card, with a labelled TEST alert button that posts one local test notification. No new permission, library or network. The test notification uses the existing alert channel and the notifications permission the app already asks for. Not a vulnerability fix.
+
 ## Fuller crash reports (v1.4.21)
 
 Automatic crash reports used to be cut off before the root cause when an exception was wrapped in others (a crash in KBC showed only the wrappers). The report now keeps a few frames of each wrapper and more frames of the root cause, within a larger size limit (6000 characters). It still holds only class names and code locations, never exception messages. No new permission, library or server. Not a vulnerability fix.
