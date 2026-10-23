@@ -1,0 +1,7 @@
+# Netra Privacy Guard (SensorGuard)
+
+> Free Android app by Prayagi Store and Services: microphone/camera transparency and privacy monitoring, on-device.
+
+## Pages
+- [Home](https://prayagi-store-and-services.github.io/prayagi-Privacy-/): features and download.
+- [Legal & data](https://prayagi-store-and-services.github.io/netra-eco/legal/): privacy policy and data safety.
