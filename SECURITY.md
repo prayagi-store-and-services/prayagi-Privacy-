@@ -1,5 +1,9 @@
 # Security notes - SensorGuard
 
+# Crash report consent: destination shown before Send (v1.4.24)
+
+- The Crash report card and the preview dialog now name the destination before anything is sent: developer email prayagideepak@gmail.com through the FormSubmit service (formsubmit.co). The exact report text is still shown first, and sending still happens only when you tap Send. Text-only change; no new permission, library or server. Not a vulnerability fix.
+
 ## Dashboard tools card and TEST alert (v1.4.22)
 
 The Travel Checking and Site Blocking entry points moved into one Tools card, with a labelled TEST alert button that posts one local test notification. No new permission, library or network. The test notification uses the existing alert channel and the notifications permission the app already asks for. Not a vulnerability fix.
