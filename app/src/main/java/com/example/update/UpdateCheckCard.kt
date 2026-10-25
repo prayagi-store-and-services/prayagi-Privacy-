@@ -20,7 +20,7 @@ fun UpdateCheckCard(modifier: Modifier = Modifier) {
             Text("App updates are managed only by Netra Ecosystem.")
             Text("This app does not download or install updates.")
             OutlinedButton(onClick={ unavailable = !AppUpdater.openEco(context) }) { Text("Open Netra Ecosystem") }
-            if(unavailable) Text("Netra Ecosystem is not installed. Open the Netra Ecosystem app to manage downloads after installing it.")
+            if(unavailable) Text("Netra Ecosystem is not installed or cannot be opened. Install or open Netra Ecosystem to manage app updates.")
         }
     }
 }
