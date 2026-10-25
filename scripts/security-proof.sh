@@ -24,6 +24,7 @@ cleanup() {
  adb logcat -d > proof-evidence/logcat.txt || status=1
  adb pull /data/local/tmp/updater-choice.png proof-evidence/ || true
  adb pull /data/local/tmp/updater-installer.png proof-evidence/ || true
+ adb pull /data/local/tmp/updater-own-install.png proof-evidence/ || true
  adb uninstall "$pkg" > proof-evidence/fixture-uninstall.txt 2>&1 || true
  local out proof_out
  if ! out=$(adb shell pm list packages --user 0 "$pkg");then status=1;out=QUERY_FAILED;fi
@@ -51,6 +52,17 @@ cleanup() {
 }
 trap cleanup EXIT
 adb install app/src/androidTest/assets/production-old.apk
+# Build genuine own newer suffixed debug APK, then lower ONLY installed disposable candidate.
+# Production build file and production fixture identity are never weakened.
+gradle --no-daemon :app:assembleDebug --stacktrace
+cp app/build/outputs/apk/debug/app-debug.apk app/src/androidTest/assets/own-debug-new.apk
+python3 - <<'PYLOWER'
+import re
+p='app/build.gradle.kts';s=open(p).read()
+s,n=re.subn(r'(versionCode = )(\d+)',lambda m:m[1]+str(int(m[2])-1),s)
+assert n==1
+open(p,'w').write(s)
+PYLOWER
 # Permission is granted only to the disposable suffixed test candidate, then reset by host cleanup.
 # connectedDebugAndroidTest installs that candidate itself, so provider test handles any system prompt explicitly.
 gradle --no-daemon :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.example.update.SelfUpdateProductionFixtureTest,com.example.update.SelfUpdateChoiceDeviceTest --stacktrace
