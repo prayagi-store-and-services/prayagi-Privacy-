@@ -47,15 +47,21 @@ class SelfUpdateChoiceDeviceTest {
             assertTrue("Disposable candidate source permission", c.packageManager.canRequestPackageInstalls())
             val uri=androidx.core.content.FileProvider.getUriForFile(c,c.packageName+".updates",f)
             c.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri,"application/vnd.android.package-archive").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK))
+            val archive=c.packageManager.getPackageArchiveInfo(f.path,0) ?: error("Production archive missing")
+            assertEquals("com.aistudio.sensorguard.prvsec",archive.packageName)
+            val info=archive.applicationInfo ?: error("Production archive application missing")
+            info.sourceDir=f.path;info.publicSourceDir=f.path
+            val expectedLabel=info.loadLabel(c.packageManager).toString()
+            assertTrue("Real production label available",expectedLabel.isNotBlank())
             val deadline=System.currentTimeMillis()+15000;var seen=false
             while(!seen && System.currentTimeMillis()<deadline) {
                 val texts=nodes(ins.uiAutomation.rootInActiveWindow).mapNotNull { it.text?.toString() }
                 val tree=nodes(ins.uiAutomation.rootInActiveWindow)
-                seen=tree.any { it.packageName?.toString()?.contains("packageinstaller")==true } && texts.any { it.contains("SensorGuard",true) } && texts.any { it.equals("Update",true) }
+                seen=tree.any { it.packageName?.toString()?.contains("packageinstaller")==true } && texts.any { it.equals(expectedLabel,true) } && texts.any { it.equals("Update",true) }
                 if(!seen)Thread.sleep(100)
             }
-            assertTrue("External installer decoded real production app and update action",seen)
             android.os.ParcelFileDescriptor.AutoCloseInputStream(ins.uiAutomation.executeShellCommand("screencap -p /data/local/tmp/updater-installer.png")).use { it.readBytes() }
+            assertTrue("External installer decoded real production label: $expectedLabel and update action",seen)
             val cancel=nodes(ins.uiAutomation.rootInActiveWindow).firstOrNull { it.text?.toString()?.equals("Cancel",true)==true }
             assertNotNull("Cancel without updating fixture",cancel);assertTrue(cancel!!.performAction(AccessibilityNodeInfo.ACTION_CLICK))
         } finally { assertTrue(!f.exists()||f.delete()) }
