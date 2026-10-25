@@ -16,6 +16,23 @@ import java.security.MessageDigest
  */
 @RunWith(AndroidJUnit4::class)
 class SelfUpdateProductionFixtureTest {
+    @Test fun busyCleanupSkipsWithoutExceptionOrCacheMutation() {
+        val ins=InstrumentationRegistry.getInstrumentation();val c=ins.targetContext
+        val field=AppUpdater::class.java.getDeclaredField("artifactLock").apply { isAccessible=true }
+        val lock=field.get(AppUpdater) as java.util.concurrent.locks.ReentrantLock
+        val acquired=java.util.concurrent.CountDownLatch(1);val release=java.util.concurrent.CountDownLatch(1)
+        val holder=Thread { lock.lock();try { acquired.countDown();release.await() } finally { lock.unlock() } }
+        val file=File(File(c.cacheDir,"updates").apply { mkdirs() },"busy-old.apk").apply { writeText("unchanged");setLastModified(1) }
+        holder.start()
+        try {
+            assertTrue("Other operation holds lock",acquired.await(5,java.util.concurrent.TimeUnit.SECONDS))
+            ins.runOnMainSync { AppUpdater.cleanStale(c) }
+            AppUpdater.cleanLeftovers(c)
+            assertEquals(0,AppUpdater.cleanDir(file.parentFile))
+            assertTrue("Busy cleanup leaves in-progress file",file.isFile)
+            assertEquals("unchanged",file.readText())
+        } finally { release.countDown();holder.join(5000);assertFalse(holder.isAlive);file.delete() }
+    }
     @Test fun genuineOlderToCurrentAndRefusalCases() {
         val ins = InstrumentationRegistry.getInstrumentation()
         val target = ins.targetContext
