@@ -45,6 +45,23 @@ data class AppRelease(
  * (the user confirms with one system tap). Android only installs it if it is signed with the same key as the installed app.
  */
 object AppUpdater {
+    // One fail-fast process-wide lock for every operation that reads or mutates cached APK bytes.
+    private val artifactLock = java.util.concurrent.locks.ReentrantLock()
+    private inline fun <T> artifactOperation(block: () -> T): T {
+        check(artifactLock.tryLock()) { "Another update operation is running. Try again when it finishes." }
+        try { return block() } finally { artifactLock.unlock() }
+    }
+    private fun launchOnMain(context: Context, intent: Intent) {
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) { context.startActivity(intent); return }
+        val done=java.util.concurrent.CountDownLatch(1)
+        var failure: Throwable?=null
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            try { context.startActivity(intent) } catch(e:Throwable) { failure=e } finally { done.countDown() }
+        }
+        done.await()
+        failure?.let { throw it }
+    }
+
     const val REPO = "prayagi-store-and-services/prayagi-Privacy-"
     const val APP_LABEL = "SensorGuard"
     private const val PREFS = "netra_app_update"
@@ -144,9 +161,13 @@ object AppUpdater {
 
     /** Deletes every file in the installer download folder and returns how many were removed. */
     fun cleanDir(dir: File?): Int {
+        return artifactOperation {
+
         var n = 0
         dir?.listFiles()?.forEach { if (it.delete()) n++ }
         return n
+    
+        }
     }
 
     /**
@@ -154,29 +175,41 @@ object AppUpdater {
      * removes the downloaded installer file and nothing is left in storage.
      */
     fun cleanLeftovers(context: Context) {
+        return artifactOperation {
+
         try {
             val installed = installedVersionName(context)
             val now = System.currentTimeMillis()
             File(context.cacheDir, "updates").listFiles()?.forEach { if (!PreDownload.keepFile(it.name, installed, now - it.lastModified())) it.delete() }
         } catch (_: Exception) {}
+    
+        }
     }
 
     /** Called when the app comes back to the front. Removes installer files older than one hour (cancelled or finished installs). */
     fun cleanStale(context: Context) {
+        return artifactOperation {
+
         try {
             val now = System.currentTimeMillis()
             val installed = installedVersionName(context)
             File(context.cacheDir, "updates").listFiles()?.forEach { if (!PreDownload.keepFile(it.name, installed, now - it.lastModified())) it.delete() }
         } catch (_: Exception) {}
+    
+        }
     }
 
     /** Rehash every cached update and validate the owning application before reuse. */
     fun savedFile(context: Context, release: AppRelease): File? {
+        return artifactOperation {
+
         val file = File(File(context.cacheDir, "updates"), "$APP_LABEL-${release.tag}.apk")
         return try {
             check(context.getSharedPreferences("verified_update_artifacts",Context.MODE_PRIVATE).contains(file.name)) { "Legacy cache requires a new download." }
             verifyArchive(context, file, release); file
         } catch (_: Exception) { file.delete(); null }
+    
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -199,6 +232,8 @@ object AppUpdater {
 
     /** Downloads the APK and verifies size and sha256. Deletes the file and throws if anything is off. */
     fun download(context: Context, release: AppRelease, onProgress: ((Long, Long) -> Unit)? = null): File {
+        return artifactOperation {
+
         val dir = File(context.cacheDir, "updates").apply { mkdirs() }
         dir.listFiles()?.filter { !it.name.endsWith("-${release.tag}.apk") }?.forEach { it.delete() }
         val file = File(dir, "$APP_LABEL-${release.tag}.apk")
@@ -232,10 +267,14 @@ object AppUpdater {
                 JSONObject().put("tag",release.tag).put("name",release.versionName).put("code",release.versionCode).put("sha",release.sha256).put("size",release.size).toString()).commit())
         } catch(e:Exception) {file.delete();throw e}
         return file
+    
+        }
     }
 
     /** Opens the system installer. Throws a readable message when the user must first allow installs from this app. */
     fun install(context: Context, file: File) {
+        return artifactOperation {
+
         check(file.canonicalFile.parentFile==File(context.cacheDir,"updates").canonicalFile) { "Unknown update file." }
         try {
             val raw=context.getSharedPreferences("verified_update_artifacts",Context.MODE_PRIVATE).getString(file.name,null) ?: error("Cached update needs fresh verification. Download again.")
@@ -243,18 +282,20 @@ object AppUpdater {
             verifyArchive(context,file,AppRelease(p.getString("tag"),p.getString("name"),p.getLong("code"),"","",p.getString("sha"),p.getLong("size")))
         } catch(e:Exception) {file.delete();throw e}
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
-            context.startActivity(
+            launchOnMain(context,
                 Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + context.packageName))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
             throw IllegalStateException("Allow installs from this app, then tap Install again.")
         }
         val uri = FileProvider.getUriForFile(context, context.packageName + ".updates", file)
-        context.startActivity(
+        launchOnMain(context,
             Intent(Intent.ACTION_VIEW)
                 .setDataAndType(uri, "application/vnd.android.package-archive")
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         )
+    
+        }
     }
 }
 
@@ -286,13 +327,14 @@ fun AppUpdatePrompt() {
         },
         confirmButton = {
             TextButton(enabled = !busy, onClick = {
+                if (busy) return@TextButton
+                busy = true
                 scope.launch {
-                    busy = true
                     message = null
                     try {
                         val existing=ready
                         if(existing!=null) {
-                            AppUpdater.install(context,existing)
+                            withContext(Dispatchers.IO) { AppUpdater.install(context,existing) }
                             release=null
                         } else {
                             val meter=DownloadMeter()
