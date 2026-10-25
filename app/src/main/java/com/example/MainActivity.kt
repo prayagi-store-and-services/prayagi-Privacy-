@@ -109,6 +109,7 @@ open class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.example.update.AppUpdater.retireLegacyUpdater(this)
         handleOpenAppSettings(intent)
         if (com.example.geo.GeoGuard.isBlocked(this)) {
             val pad = (24 * resources.displayMetrics.density).toInt()
@@ -131,7 +132,6 @@ open class MainActivity : ComponentActivity() {
         }
         com.example.festival.JayMataDi.greetIfDue(this)
         // Remove any installer file left from an in-app update (runs in the background).
-        com.example.update.AppUpdater.retireLegacyUpdater(this)
         // Anonymous daily usage count (+1 on a public counter, nothing else). The user can turn it off in Settings.
         val usageCtx = applicationContext
         Thread { com.example.stats.UsagePing.pingIfDue(usageCtx) }.start()
