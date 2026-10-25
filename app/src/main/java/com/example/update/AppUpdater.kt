@@ -170,9 +170,32 @@ object AppUpdater {
         } catch (_: Exception) {}
     }
 
-    /** The file for this release when it was already saved in the background (a verified download has exactly the expected size). */
-    fun savedFile(context: Context, release: AppRelease): File? =
-        File(File(context.cacheDir, "updates"), "$APP_LABEL-${release.tag}.apk").takeIf { it.exists() && it.length() == release.size }
+    /** Rehash every cached update and validate the owning application before reuse. */
+    fun savedFile(context: Context, release: AppRelease): File? {
+        val file = File(File(context.cacheDir, "updates"), "$APP_LABEL-${release.tag}.apk")
+        return try {
+            check(context.getSharedPreferences("verified_update_artifacts",Context.MODE_PRIVATE).contains(file.name)) { "Legacy cache requires a new download." }
+            verifyArchive(context, file, release); file
+        } catch (_: Exception) { file.delete(); null }
+    }
+
+    @Suppress("DEPRECATION")
+    internal fun verifyArchive(context: Context, file: File, release: AppRelease) {
+        check(file.isFile && file.length() == release.size) { "Update file is missing or incomplete." }
+        val md = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input -> val buffer=ByteArray(16384); while(true) { val n=input.read(buffer);if(n<0)break;md.update(buffer,0,n) } }
+        check(md.digest().joinToString("") { "%02x".format(it) } == release.sha256) { "Update checksum changed. Download again." }
+        val flags = if(Build.VERSION.SDK_INT>=28) android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES else android.content.pm.PackageManager.GET_SIGNATURES
+        val pm=context.packageManager
+        val archive=pm.getPackageArchiveInfo(file.path,flags) ?: error("Unreadable update APK.")
+        val current=pm.getPackageInfo(context.packageName,flags)
+        fun code(p:android.content.pm.PackageInfo)=if(Build.VERSION.SDK_INT>=28)p.longVersionCode else p.versionCode.toLong()
+        fun signers(p:android.content.pm.PackageInfo):Set<String> = (if(Build.VERSION.SDK_INT>=28)p.signingInfo?.apkContentsSigners else p.signatures)?.map { sig ->
+            MessageDigest.getInstance("SHA-256").digest(sig.toByteArray()).joinToString("") { "%02x".format(it) }
+        }?.toSet().orEmpty()
+        check(SelfUpdateIdentity.matches(context.packageName,archive.packageName,code(current),code(archive),release.versionCode,
+            release.versionName,archive.versionName,signers(current),signers(archive))) { "Update package, version or signer did not match. Nothing was installed." }
+    }
 
     /** Downloads the APK and verifies size and sha256. Deletes the file and throws if anything is off. */
     fun download(context: Context, release: AppRelease, onProgress: ((Long, Long) -> Unit)? = null): File {
@@ -203,17 +226,28 @@ object AppUpdater {
             file.delete()
             throw IllegalStateException("The downloaded file did not match its checksum, so it was not installed.")
         }
+        try {
+            verifyArchive(context,file,release)
+            check(context.getSharedPreferences("verified_update_artifacts",Context.MODE_PRIVATE).edit().putString(file.name,
+                JSONObject().put("tag",release.tag).put("name",release.versionName).put("code",release.versionCode).put("sha",release.sha256).put("size",release.size).toString()).commit())
+        } catch(e:Exception) {file.delete();throw e}
         return file
     }
 
     /** Opens the system installer. Throws a readable message when the user must first allow installs from this app. */
     fun install(context: Context, file: File) {
+        check(file.canonicalFile.parentFile==File(context.cacheDir,"updates").canonicalFile) { "Unknown update file." }
+        try {
+            val raw=context.getSharedPreferences("verified_update_artifacts",Context.MODE_PRIVATE).getString(file.name,null) ?: error("Cached update needs fresh verification. Download again.")
+            val p=JSONObject(raw)
+            verifyArchive(context,file,AppRelease(p.getString("tag"),p.getString("name"),p.getLong("code"),"","",p.getString("sha"),p.getLong("size")))
+        } catch(e:Exception) {file.delete();throw e}
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
             context.startActivity(
                 Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + context.packageName))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
-            throw IllegalStateException("Allow installs from this app, then tap Update again.")
+            throw IllegalStateException("Allow installs from this app, then tap Install again.")
         }
         val uri = FileProvider.getUriForFile(context, context.packageName + ".updates", file)
         context.startActivity(
@@ -237,6 +271,7 @@ fun AppUpdatePrompt() {
     LaunchedEffect(Unit) {
         release = withContext(Dispatchers.IO) { AppUpdater.checkIfDue(context) }
     }
+    var ready by remember { mutableStateOf<File?>(null) }
     val r = release ?: return
     AlertDialog(
         onDismissRequest = { if (!busy) release = null },
@@ -255,18 +290,29 @@ fun AppUpdatePrompt() {
                     busy = true
                     message = null
                     try {
-                        val meter = DownloadMeter()
-                        val file = withContext(Dispatchers.IO) { AppUpdater.download(context, r) { d, t -> line = meter.line(d, t, System.currentTimeMillis()); frac = DownloadMeter.fraction(d, t) } }
-                        line = null
-                        AppUpdater.install(context, file)
-                        release = null
+                        val existing=ready
+                        if(existing!=null) {
+                            AppUpdater.install(context,existing)
+                            release=null
+                        } else {
+                            val meter=DownloadMeter()
+                            ready=withContext(Dispatchers.IO) { AppUpdater.download(context,r) { d,t -> line=meter.line(d,t,System.currentTimeMillis());frac=DownloadMeter.fraction(d,t) } }
+                            line="Download verified. Tap Install to open Android's installer. Keep Play Protect enabled; do not bypass a security warning."
+                        }
                     } catch (e: Exception) {
                         message = e.message ?: "Update failed."
                     }
                     busy = false
                 }
-            }) { Text(if (busy) "Downloading..." else "Update") }
+            }) { Text(if (busy) "Working..." else if(ready!=null) "Install" else "Download") }
         },
         dismissButton = { TextButton(enabled = !busy, onClick = { release = null }) { Text("Later") } }
     )
+}
+
+internal object SelfUpdateIdentity {
+    fun matches(expectedPackage:String,archivePackage:String?,installedCode:Long,archiveCode:Long,
+        expectedCode:Long,expectedName:String,archiveName:String?,installedSigners:Set<String>,archiveSigners:Set<String>):Boolean =
+        archivePackage==expectedPackage && expectedCode>installedCode && archiveCode==expectedCode &&
+        archiveName==expectedName && installedSigners.isNotEmpty() && archiveSigners==installedSigners
 }
