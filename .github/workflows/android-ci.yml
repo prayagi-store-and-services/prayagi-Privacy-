@@ -44,6 +44,11 @@ jobs:
           set -o pipefail
           mkdir -p app/build/ci-diagnostics
           gradle --no-daemon :app:assembleDebug :app:testDebugUnitTest --stacktrace 2>&1 | tee app/build/ci-diagnostics/android-build.log
+      - name: Preserve full unit regression XML
+        if: always()
+        run: |
+          mkdir -p app/build/ci-diagnostics/full-unit-results
+          cp app/build/test-results/testDebugUnitTest/*.xml app/build/ci-diagnostics/full-unit-results/ || true
       - name: Render real source-freshness screen for visual review
         run: gradle --no-daemon :app:testDebugUnitTest --tests com.example.SourceFreshnessScreenshotTest -Proborazzi.test.record=true --stacktrace
       - name: Upload build log and test results
@@ -57,3 +62,27 @@ jobs:
             app/build/outputs/source-freshness.png
             app/build/outputs/ecosystem-version-header.png
           if-no-files-found: warn
+
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Genuine own-app security proof on disposable emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: bash scripts/security-proof.sh
+      - name: Upload genuine fixture and candidate UI proof
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: SensorGuard-own-app-security-proof
+          path: |
+            proof-evidence/
+            app/build/ci-diagnostics/full-unit-results/
+          if-no-files-found: error
