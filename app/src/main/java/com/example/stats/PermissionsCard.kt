@@ -46,14 +46,6 @@ internal fun runtimeStatus(context: Context, permission: String): String =
         "Unavailable"
     }
 
-internal fun installStatus(context: Context): String =
-    try { if (context.packageManager.canRequestPackageInstalls()) "Allowed" else "Not allowed" } catch (e: Exception) { "Unavailable" }
-
-internal fun openInstallSettings(context: Context) {
-    val i = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    try { context.startActivity(i) } catch (e: Exception) { context.startActivity(appSettingsIntent(context)) }
-}
-
 internal fun notificationStatus(context: Context): String =
     if (android.os.Build.VERSION.SDK_INT >= 33) runtimeStatus(context, android.Manifest.permission.POST_NOTIFICATIONS) else "Allowed"
 
@@ -105,14 +97,8 @@ internal fun appPermissions(): List<PermItem> = listOf(
         null
     ),
     PermItem(
-        "Install apps",
-        "Used only when you tap Install on an update, so Android can install the new ${com.example.Brand.name} file. Tap to open the Android page where you can allow or stop it.",
-        { installStatus(it) },
-        { openInstallSettings(it) }
-    ),
-    PermItem(
         "Internet and start after reboot",
-        "Internet checks for updates and sends the anonymous usage count if you leave it on. Start after reboot restarts the guard after the phone restarts. Both are normal permissions, always allowed.",
+        "Internet supports blocklist updates, crash reports and the optional anonymous usage count. It does not download app updates. Start after reboot restarts the guard after the phone restarts. Both are normal permissions, always allowed.",
         { "Always allowed (normal permission)" },
         null
     )
