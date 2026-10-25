@@ -55,26 +55,35 @@ fun UpdateCheckCard(modifier: Modifier = Modifier) {
             status?.let { Text(it, fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurface) }
             newer?.let { r ->
                 Button(enabled = !busy, onClick = {
+                    if (busy) return@Button
+                    busy = true
                     scope.launch {
-                        busy = true
                         try {
                             val meter = DownloadMeter()
                             val file = withContext(Dispatchers.IO) { AppUpdater.savedFile(context, r) ?: AppUpdater.download(context, r) { d, t -> line = meter.line(d, t, System.currentTimeMillis()); frac = DownloadMeter.fraction(d, t) } }
                             ready = file
                             line = null
-                            AppUpdater.install(context, file)
+                            status = "Download verified. Choose Install downloaded update to open Android's installer. Keep Play Protect enabled; do not bypass a security warning."
                         } catch (e: Exception) {
                             status = e.message ?: "Update failed."
                         }
                         busy = false
                     }
-                }) { Text(if (busy) "Downloading..." else "Update to " + r.versionName) }
+                }) { Text(if (busy) "Downloading..." else "Download " + r.versionName) }
                 if (busy) androidx.compose.material3.LinearProgressIndicator(progress = frac, modifier = Modifier.fillMaxWidth())
                 line?.let { Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface) }
                 ready?.let { f ->
                     if (!busy && f.exists()) {
                         Text("Downloaded. Deleted automatically after it is installed.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        OutlinedButton(onClick = { try { AppUpdater.install(context, f) } catch (e: Exception) { status = (e.message ?: "Install failed.") } }) { Text("Install downloaded update") }
+                        OutlinedButton(enabled = !busy, onClick = {
+                            if (busy) return@OutlinedButton
+                            busy = true
+                            scope.launch {
+                                try { withContext(Dispatchers.IO) { AppUpdater.install(context, f) } }
+                                catch(e:Exception) { status = (e.message ?: "Install failed.") }
+                                finally { busy = false }
+                            }
+                        }) { Text("Install downloaded update") }
                     }
                 }
             }

@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * Update alert: every 6 hours (network required) asks the repo's latest release whether a newer version exists and
- * posts one notification per new version. Tapping it opens the app, downloads the verified build and starts the install.
+ * posts one metadata-only notification per new version. Download and Install each require a separate choice.
  */
 object UpdateAlert {
     const val EXTRA_AUTO_UPDATE = "netra_auto_update"
@@ -34,7 +34,7 @@ object UpdateAlert {
     private const val PREFS = "netra_update_alert"
 
     fun start(activity: Activity) {
-        schedule(activity.applicationContext)
+        try { schedule(activity.applicationContext) } catch (_: Exception) { /* background check unavailable; the manual check still works */ }
         handle(activity, activity.intent)
     }
 
@@ -45,29 +45,35 @@ object UpdateAlert {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, request)
     }
 
-    /** Runs when the notification was tapped: download, verify, hand to the installer. */
+    /** Notification entry offers Download first, then a separate verified Install action. */
     fun handle(activity: Activity, intent: Intent?) {
         if (intent?.getBooleanExtra(EXTRA_AUTO_UPDATE, false) != true) return
         intent.removeExtra(EXTRA_AUTO_UPDATE)
-        val app = activity.applicationContext
-        Toast.makeText(app, "Downloading the update...", Toast.LENGTH_SHORT).show()
-        Thread {
-            try {
-                val result = AppUpdater.checkNow(app)
-                if (result is AppUpdater.CheckResult.Newer) {
-                    val file = AppUpdater.savedFile(app, result.release) ?: AppUpdater.download(app, result.release)
-                    activity.runOnUiThread {
-                        try { AppUpdater.install(app, file) } catch (e: Exception) {
-                            Toast.makeText(app, e.message ?: "Update failed.", Toast.LENGTH_LONG).show()
+        android.app.AlertDialog.Builder(activity)
+            .setTitle("Download SensorGuard update?")
+            .setMessage("Download the update from SensorGuard's official GitHub release. Android will not open its installer until you choose Install after verification. Keep Play Protect enabled; do not bypass a security warning.")
+            .setNegativeButton("Not now",null)
+            .setPositiveButton("Download") { _,_ ->
+                Thread {
+                    try {
+                        val result=AppUpdater.checkNow(activity)
+                        check(result is AppUpdater.CheckResult.Newer) { "No newer update available." }
+                        val file=AppUpdater.download(activity,result.release)
+                        activity.runOnUiThread {
+                            if(!activity.isFinishing) android.app.AlertDialog.Builder(activity)
+                                .setTitle("Update downloaded and verified")
+                                .setMessage("Install opens Android's confirmation. You can choose Not now without installing.")
+                                .setNegativeButton("Not now",null)
+                                .setPositiveButton("Install") { _,_ ->
+                                    Thread {
+                                        try { AppUpdater.install(activity,file) }
+                                        catch(e:Exception) { activity.runOnUiThread { Toast.makeText(activity,e.message ?: "Update refused.",Toast.LENGTH_LONG).show() } }
+                                    }.start()
+                                }.show()
                         }
-                    }
-                } else {
-                    activity.runOnUiThread { Toast.makeText(app, "No newer version found.", Toast.LENGTH_LONG).show() }
-                }
-            } catch (e: Exception) {
-                activity.runOnUiThread { Toast.makeText(app, e.message ?: "Update failed.", Toast.LENGTH_LONG).show() }
-            }
-        }.start()
+                    } catch(e:Exception) { activity.runOnUiThread { Toast.makeText(activity,e.message ?: "Update unavailable.",Toast.LENGTH_LONG).show() } }
+                }.start()
+            }.show()
     }
 
     internal fun notifyIfNew(c: Context, release: AppRelease, appName: String, downloaded: Boolean = false) {
@@ -86,7 +92,7 @@ object UpdateAlert {
         val n = NotificationCompat.Builder(c, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
             .setContentTitle("Update available")
-            .setContentText("Version " + release.versionName + (if (downloaded) " is downloaded. Tap to install." else " is ready. Tap to update."))
+            .setContentText("Version " + release.versionName + " is available. Tap to choose Download.")
             .setContentIntent(open)
             .setAutoCancel(true)
             .build()
@@ -100,11 +106,8 @@ class UpdateAlertWorker(appContext: Context, params: WorkerParameters) : Corouti
         try {
             val r = AppUpdater.checkNow(applicationContext)
             if (r is AppUpdater.CheckResult.Newer) {
-                // Save the update now when the connection allows it, so one tap installs it. Nothing is sent anywhere.
-                var saved = AppUpdater.savedFile(applicationContext, r.release) != null
-                if (!saved && PreDownload.allowedNow(applicationContext, false, r.release.size)) {
-                    saved = try { AppUpdater.download(applicationContext, r.release); true } catch (_: Exception) { false }
-                }
+                // Notify about metadata only. APK download needs an explicit choice.
+                val saved=false
                 UpdateAlert.notifyIfNew(applicationContext, r.release, "", saved)
             }
         } catch (_: Exception) {
