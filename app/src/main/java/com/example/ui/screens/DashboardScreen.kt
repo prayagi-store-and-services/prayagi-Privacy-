@@ -77,7 +77,8 @@ fun DashboardScreen(
     onNavigateToSettings: () -> Unit,
     onOpenTravelChecking: () -> Unit = {},
     onOpenSiteBlocking: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    decorationClock: com.example.power.HeaderClock? = null
 ) {
     val context = LocalContext.current
     val guardState by viewModel.guardState.collectAsState()
@@ -96,7 +97,7 @@ fun DashboardScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .testTag("dashboard_screen")
     ) {
-        com.example.festival.FestivalBannerCard(modifier = Modifier.fillMaxWidth())
+        com.example.festival.FestivalBannerCard(modifier = Modifier.fillMaxWidth(), clock = decorationClock)
         // Top Header
         Row(
             modifier = Modifier.fillMaxWidth(),

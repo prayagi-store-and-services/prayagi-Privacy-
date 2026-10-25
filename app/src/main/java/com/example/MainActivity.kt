@@ -168,15 +168,14 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
             }
         )
     } else {
+        val decorationClock = com.example.power.adaptiveHeaderClock()
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 // Standard Netra header: 56 dp, only app name, version and date/time. Everything else scrolls.
                 val ctx = androidx.compose.ui.platform.LocalContext.current
-                var clockNow by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(java.util.Date()) }
-                androidx.compose.runtime.LaunchedEffect(Unit) { while (true) { clockNow = java.util.Date(); kotlinx.coroutines.delay(30_000) } }
                 val ownVersion = androidx.compose.runtime.remember { try { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName } catch (e: Exception) { null } ?: "Unavailable" }
-                NetraVersionHeader(ownVersion, clockNow)
+                NetraVersionHeader(ownVersion, decorationClock.now, decorationClock.paused)
             },
             bottomBar = {
                 NavigationBar(
@@ -284,6 +283,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
             ) { tabIndex ->
                 when (tabIndex) {
                     0 -> DashboardScreen(
+                        decorationClock = decorationClock,
                         viewModel = viewModel,
                         onNavigateToLogs = { selectedTab = 2 },
                         onNavigateToSettings = { selectedTab = 3 },
@@ -313,7 +313,7 @@ fun SensorGuardApp(viewModel: SensorGuardViewModel) {
 }
 
 @androidx.compose.runtime.Composable
-fun NetraVersionHeader(ownVersion: String, clockNow: java.util.Date) {
+fun NetraVersionHeader(ownVersion: String, clockNow: java.util.Date, clockPaused: Boolean = false) {
                 androidx.compose.foundation.layout.Row(
                     modifier = Modifier.fillMaxWidth().background(androidx.compose.material3.MaterialTheme.colorScheme.background).statusBarsPadding().height(56.dp).padding(horizontal = 16.dp),
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
@@ -323,6 +323,6 @@ fun NetraVersionHeader(ownVersion: String, clockNow: java.util.Date) {
                         Text(text = "SensorGuard", fontSize = 20.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, maxLines = 1)
                         Text(text = "v" + ownVersion + " | Netra Ecosystem", fontSize = 12.sp, maxLines = 1, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Text(text = java.text.SimpleDateFormat("EEE d MMM, HH:mm", java.util.Locale.getDefault()).format(clockNow), fontSize = 12.sp, maxLines = 1, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = if (clockPaused) "Clock paused (power saving)" else java.text.SimpleDateFormat("EEE d MMM, HH:mm", java.util.Locale.getDefault()).format(clockNow), fontSize = 12.sp, maxLines = 1, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 }
