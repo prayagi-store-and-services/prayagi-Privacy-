@@ -6,6 +6,11 @@ on:
       tag:
         description: Release tag (must equal v plus versionName in app/build.gradle.kts, for example v1.0.1)
         required: true
+      publish:
+        description: Publish only after verified candidate artifact review and final green head
+        required: true
+        type: boolean
+        default: false
       notes:
         description: What changed (shown in the in-app update prompt)
         required: true
@@ -19,6 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      - name: Refuse publication from non-main ref
+        if: ${{ inputs.publish == true && github.ref != 'refs/heads/main' }}
+        run: exit 1
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set up JDK 21
@@ -86,7 +94,15 @@ jobs:
             ACTUAL="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/$label-certs.txt" | tr '[:upper:]' '[:lower:]')"
             test "$ACTUAL" = "$EXPECTED"
           done
+      - name: Upload verified signed candidate
+        uses: actions/upload-artifact@v7
+        with:
+          name: verified-signed-candidate-${{ github.sha }}
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
       - name: Publish release
+        if: ${{ inputs.publish == true && github.ref == 'refs/heads/main' }}
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
