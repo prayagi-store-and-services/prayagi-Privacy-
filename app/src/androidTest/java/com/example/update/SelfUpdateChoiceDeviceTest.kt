@@ -25,7 +25,16 @@ class SelfUpdateChoiceDeviceTest {
             val nm=c.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
             nm.cancelAll()
             UpdateAlert.notifyIfNew(c,AppRelease("v9.9.9","9.9.9",999999,"","","0".repeat(64),1),"",false)
-            val notification=nm.activeNotifications.single { it.id==7431 }.notification
+            assertEquals(android.content.pm.PackageManager.PERMISSION_GRANTED,c.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS))
+            assertTrue("Notifications enabled on disposable candidate",nm.areNotificationsEnabled())
+            // NotificationManager queues publication through system_server; wait for actual visibility.
+            val notificationDeadline=System.currentTimeMillis()+10000
+            var posted=nm.activeNotifications.firstOrNull { it.id==7431 }
+            while(posted==null && System.currentTimeMillis()<notificationDeadline) {
+                Thread.sleep(100);posted=nm.activeNotifications.firstOrNull { it.id==7431 }
+            }
+            assertNotNull("Production update notification 7431 posted within 10s",posted)
+            val notification=posted!!.notification
             assertNotNull("Production notification PendingIntent",notification.contentIntent)
             notification.contentIntent.send()
             var cancel:AccessibilityNodeInfo?=null
