@@ -62,13 +62,13 @@ fun UpdateCheckCard(modifier: Modifier = Modifier) {
                             val file = withContext(Dispatchers.IO) { AppUpdater.savedFile(context, r) ?: AppUpdater.download(context, r) { d, t -> line = meter.line(d, t, System.currentTimeMillis()); frac = DownloadMeter.fraction(d, t) } }
                             ready = file
                             line = null
-                            AppUpdater.install(context, file)
+                            status = "Download verified. Choose Install downloaded update to open Android's installer. Keep Play Protect enabled; do not bypass a security warning."
                         } catch (e: Exception) {
                             status = e.message ?: "Update failed."
                         }
                         busy = false
                     }
-                }) { Text(if (busy) "Downloading..." else "Update to " + r.versionName) }
+                }) { Text(if (busy) "Downloading..." else "Download " + r.versionName) }
                 if (busy) androidx.compose.material3.LinearProgressIndicator(progress = frac, modifier = Modifier.fillMaxWidth())
                 line?.let { Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface) }
                 ready?.let { f ->
