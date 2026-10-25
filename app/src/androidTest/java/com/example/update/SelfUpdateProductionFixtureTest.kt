@@ -1,70 +1,18 @@
 package com.example.update
-
-import android.content.Context
-import android.content.ContextWrapper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import org.junit.Assert.*
 import org.junit.Test
+import org.junit.Assert.*
 import org.junit.runner.RunWith
-import java.io.File
-import java.security.MessageDigest
-
-/** Genuine production archive validation, not production-app self-install proof.
- * Host installs N-1 and uses a test-only applicationId suffix for this candidate.
- * PackageManager and signingInfo are real; no signer override or production bypass.
- */
 @RunWith(AndroidJUnit4::class)
 class SelfUpdateProductionFixtureTest {
-    @Test fun busyCleanupSkipsWithoutExceptionOrCacheMutation() {
-        val ins=InstrumentationRegistry.getInstrumentation();val c=ins.targetContext
-        val field=AppUpdater::class.java.getDeclaredField("artifactLock").apply { isAccessible=true }
-        val lock=field.get(AppUpdater) as java.util.concurrent.locks.ReentrantLock
-        val acquired=java.util.concurrent.CountDownLatch(1);val release=java.util.concurrent.CountDownLatch(1)
-        val holder=Thread { lock.lock();try { acquired.countDown();release.await() } finally { lock.unlock() } }
-        val file=File(File(c.cacheDir,"updates").apply { mkdirs() },"busy-old.apk").apply { writeText("unchanged");setLastModified(1) }
-        holder.start()
-        try {
-            assertTrue("Other operation holds lock",acquired.await(5,java.util.concurrent.TimeUnit.SECONDS))
-            ins.runOnMainSync { AppUpdater.cleanStale(c) }
-            AppUpdater.cleanLeftovers(c)
-            assertEquals(0,AppUpdater.cleanDir(file.parentFile))
-            assertTrue("Busy cleanup leaves in-progress file",file.isFile)
-            assertEquals("unchanged",file.readText())
-        } finally { release.countDown();holder.join(5000);assertFalse(holder.isAlive);file.delete() }
-    }
-    @Test fun genuineOlderToCurrentAndRefusalCases() {
-        val ins = InstrumentationRegistry.getInstrumentation()
-        val target = ins.targetContext
-        val fixturePackage = "com.aistudio.sensorguard.prvsec"
-        assertNotEquals("Host must isolate test candidate from real production fixture", fixturePackage, target.packageName)
-        val real = object : ContextWrapper(target) { override fun getPackageName() = fixturePackage }
-        val dir = File(target.cacheDir,"updates").apply { mkdirs() }
-        fun asset(name:String):File = File(dir,name).also { f -> ins.context.assets.open(name).use { input -> f.outputStream().use { input.copyTo(it) } } }
-        val newer = asset("production-new.apk")
-        val older = asset("production-old.apk")
-        val foreign = asset("production-foreign.apk")
-        fun digest(f:File)=MessageDigest.getInstance("SHA-256").digest(f.readBytes()).joinToString("") { "%02x".format(it) }
-        fun release(f:File,code:Long,name:String)=AppRelease("v$name",name,code,"","",digest(f),f.length())
-        val current = release(newer,54,"1.4.24")
-        fun refused(block:()->Unit) { try { block(); fail("Archive unexpectedly accepted") } catch(expected:IllegalStateException) { assertFalse(expected.message.isNullOrBlank()) } }
-        try {
-            assertEquals(53L,AppUpdater.installedCode(real))
-            AppUpdater.verifyArchive(real,newer,current)
-            refused { AppUpdater.verifyArchive(real,older,release(older,53,"1.4.23")) }
-            refused { AppUpdater.verifyArchive(real,newer,current.copy(sha256="0".repeat(64))) }
-            refused { AppUpdater.verifyArchive(real,newer,current.copy(versionCode=55)) }
-            refused { AppUpdater.verifyArchive(real,newer,current.copy(versionName="wrong")) }
-            refused { AppUpdater.verifyArchive(real,foreign,release(foreign,46,"1.1.37")) }
-            val legacy=File(dir,"${AppUpdater.APP_LABEL}-${current.tag}.apk")
-            newer.copyTo(legacy,true)
-            target.getSharedPreferences("verified_update_artifacts",Context.MODE_PRIVATE).edit().remove(legacy.name).commit()
-            assertNull(AppUpdater.savedFile(real,current))
-            assertFalse("Legacy file deleted",legacy.exists())
-            newer.appendBytes(byteArrayOf(1))
-            refused { AppUpdater.verifyArchive(real,newer,current) }
-        } finally {
-            listOf(newer,older,foreign).forEach { assertTrue("Fixture cache removed", !it.exists() || it.delete()) }
-        }
-    }
+ @Test fun mergedManifestHasNoInstallerPermissionOrProvider() {
+  val c=InstrumentationRegistry.getInstrumentation().targetContext
+  val p=c.packageManager.getPackageInfo(c.packageName,android.content.pm.PackageManager.GET_PERMISSIONS or android.content.pm.PackageManager.GET_PROVIDERS)
+  assertFalse(p.requestedPermissions.orEmpty().contains("android.permission.REQUEST_INSTALL_PACKAGES"))
+  assertFalse(p.providers.orEmpty().any { it.authority==c.packageName+".updates" })
+ }
+ @Test fun persistedLegacyWorkerDoesNothing() {
+  assertFalse(AppUpdater::class.java.declaredMethods.any { it.name in listOf("download","install","checkNow") })
+ }
 }
