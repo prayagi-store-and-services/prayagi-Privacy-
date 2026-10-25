@@ -64,7 +64,12 @@ object UpdateAlert {
                                 .setTitle("Update downloaded and verified")
                                 .setMessage("Install opens Android's confirmation. You can choose Not now without installing.")
                                 .setNegativeButton("Not now",null)
-                                .setPositiveButton("Install") { _,_ -> try { AppUpdater.install(activity,file) } catch(e:Exception) { Toast.makeText(activity,e.message ?: "Update refused.",Toast.LENGTH_LONG).show() } }.show()
+                                .setPositiveButton("Install") { _,_ ->
+                                    Thread {
+                                        try { AppUpdater.install(activity,file) }
+                                        catch(e:Exception) { activity.runOnUiThread { Toast.makeText(activity,e.message ?: "Update refused.",Toast.LENGTH_LONG).show() } }
+                                    }.start()
+                                }.show()
                         }
                     } catch(e:Exception) { activity.runOnUiThread { Toast.makeText(activity,e.message ?: "Update unavailable.",Toast.LENGTH_LONG).show() } }
                 }.start()
