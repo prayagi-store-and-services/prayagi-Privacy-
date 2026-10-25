@@ -161,13 +161,14 @@ object AppUpdater {
 
     /** Deletes every file in the installer download folder and returns how many were removed. */
     fun cleanDir(dir: File?): Int {
-        return artifactOperation {
+        if (!artifactLock.tryLock()) return 0
+        try {
 
         var n = 0
         dir?.listFiles()?.forEach { if (it.delete()) n++ }
         return n
     
-        }
+        } finally { artifactLock.unlock() }
     }
 
     /**
@@ -175,7 +176,8 @@ object AppUpdater {
      * removes the downloaded installer file and nothing is left in storage.
      */
     fun cleanLeftovers(context: Context) {
-        return artifactOperation {
+        if (!artifactLock.tryLock()) return 
+        try {
 
         try {
             val installed = installedVersionName(context)
@@ -183,12 +185,13 @@ object AppUpdater {
             File(context.cacheDir, "updates").listFiles()?.forEach { if (!PreDownload.keepFile(it.name, installed, now - it.lastModified())) it.delete() }
         } catch (_: Exception) {}
     
-        }
+        } finally { artifactLock.unlock() }
     }
 
     /** Called when the app comes back to the front. Removes installer files older than one hour (cancelled or finished installs). */
     fun cleanStale(context: Context) {
-        return artifactOperation {
+        if (!artifactLock.tryLock()) return 
+        try {
 
         try {
             val now = System.currentTimeMillis()
@@ -196,7 +199,7 @@ object AppUpdater {
             File(context.cacheDir, "updates").listFiles()?.forEach { if (!PreDownload.keepFile(it.name, installed, now - it.lastModified())) it.delete() }
         } catch (_: Exception) {}
     
-        }
+        } finally { artifactLock.unlock() }
     }
 
     /** Rehash every cached update and validate the owning application before reuse. */
