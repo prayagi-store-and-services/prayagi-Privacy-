@@ -17,8 +17,17 @@ class SelfUpdateChoiceDeviceTest {
         val ins=InstrumentationRegistry.getInstrumentation();val c=ins.targetContext
         val dir=File(c.cacheDir,"updates")
         val before=dir.listFiles()?.filter { it.extension=="apk" }?.map { it.name to it.length() }?.sortedBy { it.first }.orEmpty()
-        val intent=Intent(c,com.example.NetraMainActivity::class.java).putExtra(UpdateAlert.EXTRA_AUTO_UPDATE,true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val intent=Intent(c,com.example.NetraMainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         ActivityScenario.launch<com.example.NetraMainActivity>(intent).use {
+            // Exercise the PendingIntent actually produced by production notification code.
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(ins.uiAutomation.executeShellCommand("pm grant ${c.packageName} android.permission.POST_NOTIFICATIONS")).use { it.readBytes() }
+            c.getSharedPreferences("netra_update_alert",android.content.Context.MODE_PRIVATE).edit().clear().commit()
+            val nm=c.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            nm.cancelAll()
+            UpdateAlert.notifyIfNew(c,AppRelease("v9.9.9","9.9.9",999999,"","","0".repeat(64),1),"",false)
+            val notification=nm.activeNotifications.single { it.id==7431 }.notification
+            assertNotNull("Production notification PendingIntent",notification.contentIntent)
+            notification.contentIntent.send()
             var cancel:AccessibilityNodeInfo?=null
             val deadline=System.currentTimeMillis()+15000
             while(cancel==null && System.currentTimeMillis()<deadline) {
@@ -65,5 +74,37 @@ class SelfUpdateChoiceDeviceTest {
             val cancel=nodes(ins.uiAutomation.rootInActiveWindow).firstOrNull { it.text?.toString()?.equals("Cancel",true)==true }
             assertNotNull("Cancel without updating fixture",cancel);assertTrue(cancel!!.performAction(AccessibilityNodeInfo.ACTION_CLICK))
         } finally { assertTrue(!f.exists()||f.delete()) }
+    }
+    /** Own debug signer/package end-to-end install path on disposable candidate only, not production signing proof. */
+    @Test fun actualInstallValidatesOwnNewerApkAndOpensSystemConfirmation() {
+        val ins=InstrumentationRegistry.getInstrumentation();val c=ins.targetContext
+        assertTrue("Disposable candidate only",c.packageName.endsWith(".securityproof"))
+        fun shell(cmd:String)=android.os.ParcelFileDescriptor.AutoCloseInputStream(ins.uiAutomation.executeShellCommand(cmd)).use { String(it.readBytes()) }
+        val f=File(File(c.cacheDir,"updates").apply{mkdirs()},"own-debug-new.apk")
+        ins.context.assets.open("own-debug-new.apk").use { input->f.outputStream().use { input.copyTo(it) } }
+        val pm=c.packageManager
+        val archive=pm.getPackageArchiveInfo(f.path,android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES)!!
+        val before=AppUpdater.installedCode(c)
+        assertEquals("Genuine newer APK",before+1,archive.longVersionCode)
+        assertEquals(c.packageName,archive.packageName)
+        val sha=java.security.MessageDigest.getInstance("SHA-256").digest(f.readBytes()).joinToString("") { "%02x".format(it) }
+        val metadata=org.json.JSONObject().put("tag","v${archive.versionName}").put("name",archive.versionName).put("code",archive.longVersionCode).put("sha",sha).put("size",f.length())
+        assertTrue(c.getSharedPreferences("verified_update_artifacts",android.content.Context.MODE_PRIVATE).edit().putString(f.name,metadata.toString()).commit())
+        try {
+            shell("appops set ${c.packageName} REQUEST_INSTALL_PACKAGES allow")
+            assertTrue(c.packageManager.canRequestPackageInstalls())
+            AppUpdater.install(c,f)
+            val deadline=System.currentTimeMillis()+15000;var seen=false
+            while(!seen && System.currentTimeMillis()<deadline) {
+                val tree=nodes(ins.uiAutomation.rootInActiveWindow)
+                seen=tree.any { it.packageName?.toString()?.contains("packageinstaller")==true } && tree.any { it.text?.toString()?.equals("Update",true)==true }
+                if(!seen)Thread.sleep(100)
+            }
+            assertTrue("Actual validated install opens system confirmation",seen)
+            shell("screencap -p /data/local/tmp/updater-own-install.png")
+            val cancel=nodes(ins.uiAutomation.rootInActiveWindow).firstOrNull { it.text?.toString()?.equals("Cancel",true)==true }
+            assertNotNull(cancel);assertTrue(cancel!!.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+            assertEquals("No update installed",before,AppUpdater.installedCode(c))
+        } finally { f.delete();c.getSharedPreferences("verified_update_artifacts",android.content.Context.MODE_PRIVATE).edit().remove(f.name).commit() }
     }
 }
