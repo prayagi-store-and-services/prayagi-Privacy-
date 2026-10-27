@@ -146,6 +146,7 @@ open class MainActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
+                com.example.update.AppUpdatePrompt()
                 SensorGuardApp(viewModel = viewModel)
             }
         }
