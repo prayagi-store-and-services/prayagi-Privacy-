@@ -23,9 +23,12 @@ class SelfUpdateChoiceDeviceTest {
    android.os.ParcelFileDescriptor.AutoCloseInputStream(ins.uiAutomation.executeShellCommand("screencap -p /data/local/tmp/centralized-no-updater.png")).use { it.readBytes() }
   }
  }
- @Test fun ecoAbsentDoesNotFallBackToOwnDownload() {
+ @Test fun ecoAbsentNeverRestoresOwnDownloader() {
   val c=InstrumentationRegistry.getInstrumentation().targetContext
-  if(c.packageManager.getLaunchIntentForPackage(AppUpdater.ECO_PACKAGE)==null) assertFalse(AppUpdater.openEco(c))
+  // Browser fallback is allowed. No installed-app/browser availability assumption here.
+  // Exact destination, old-Eco/self-handler exclusion and no-browser result are deterministic Robolectric regressions.
+  assertEquals("https", android.net.Uri.parse(AppUpdater.ECO_PAGE).scheme)
+  assertFalse(AppUpdater.ECO_PAGE.endsWith(".apk"))
   assertFalse(AppUpdater::class.java.declaredMethods.any { it.name=="download" || it.name=="install" })
  }
 }
