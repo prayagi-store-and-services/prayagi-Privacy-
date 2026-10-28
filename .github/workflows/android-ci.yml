@@ -51,6 +51,8 @@ jobs:
           cp app/build/test-results/testDebugUnitTest/*.xml app/build/ci-diagnostics/full-unit-results/ || true
       - name: Render real source-freshness screen for visual review
         run: gradle --no-daemon :app:testDebugUnitTest --tests com.example.SourceFreshnessScreenshotTest -Proborazzi.test.record=true --stacktrace
+      - name: Render community links
+        run: gradle --no-daemon :app:testDebugUnitTest --tests com.example.community.CommunityCardTest -Proborazzi.test.record=true --stacktrace
       - name: Upload build log and test results
         if: always()
         uses: actions/upload-artifact@v7
@@ -59,6 +61,7 @@ jobs:
           path: |
             app/build/test-results/testDebugUnitTest/*.xml
             app/build/outputs/metadata-update-notice.png
+            app/build/outputs/community-*.png
             app/build/ci-diagnostics/android-build.log
             app/build/outputs/source-freshness.png
             app/build/outputs/ecosystem-version-header.png
