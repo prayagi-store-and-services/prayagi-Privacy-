@@ -1,6 +1,11 @@
 package com.example.siteblock
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -70,18 +75,21 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         OutlinedButton(onClick = onBack, modifier = Modifier.testTag("siteblock_back")) { Text("Back") }
-        Text("Block adult and gambling sites", style = MaterialTheme.typography.headlineSmall)
+        DnsChoicesCard()
+        Text("Local VPN site blocking: unavailable", style = MaterialTheme.typography.headlineSmall)
+        Text("The local DNS-only VPN is disabled in this version because it could interrupt internet access. Ads and Family VPN modes are not available yet. Private DNS below is separate and does not use this VPN.")
         Text(
             "Uses a list of known adult and gambling websites kept on this phone. When an app or browser asks for the " +
-                "address of a listed site, ${com.example.Brand.name} answers that it does not exist. Everything stays on the phone.",
+                "address of a listed site, the local filter is designed to answer that it does not exist. This filter is currently disabled.",
             style = MaterialTheme.typography.bodyMedium
         )
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (enabled) "Site blocking is ON" else "Site blocking is OFF", style = MaterialTheme.typography.titleMedium)
+                    Text("Local VPN unavailable", style = MaterialTheme.typography.titleMedium)
                     Switch(
-                        checked = enabled,
+                        checked = false,
+                        enabled = false,
                         onCheckedChange = { on ->
                             if (on) turnOn() else {
                                 prefs.enabled = false; enabled = false
@@ -132,7 +140,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         )
         Text("Privacy", style = MaterialTheme.typography.titleMedium)
         Text(
-            "No website names are saved or sent anywhere. Only two counters (today and total) are kept on this phone. " +
+            "The local filter does not save website names. Only two counters (today and total) are kept on this phone. " +
                 "Questions for sites that are not blocked go to the DNS server your phone already uses.",
             style = MaterialTheme.typography.bodySmall
         )
@@ -198,5 +206,50 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
                 "The data file stays under CC BY-SA 4.0 for the UT1 part. Full text: docs/THIRD_PARTY_LISTS.md in the ${com.example.Brand.name} repository.",
             style = MaterialTheme.typography.bodySmall
         )
+    }
+}
+
+
+/** Public DNS setup only: no resolver traffic, workers, timers or system-setting writes. */
+@Composable
+fun DnsChoicesCard() {
+    val context = LocalContext.current
+    var message by remember { mutableStateOf<String?>(null) }
+    Card(Modifier.fillMaxWidth().testTag("dns_choices")) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("DNS protection: choose in Android", style = MaterialTheme.typography.titleLarge)
+            Text("Free public AdGuard DNS. Android 9 or later supports Private DNS. Copy a hostname, open Private DNS settings, choose Private DNS provider hostname, paste and save. Android applies the change; this app cannot switch it silently or confirm that it is active.")
+            Text("Ads block (normal)", style = MaterialTheme.typography.titleMedium)
+            Text("Blocks ads, trackers and phishing domains. Does not add adult-content filtering.")
+            Text("dns.adguard-dns.com", modifier = Modifier.testTag("dns_ads_hostname"))
+            OutlinedButton(onClick = {
+                (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("AdGuard Ads DNS", "dns.adguard-dns.com"))
+                message = "Ads DNS copied. Paste it in Android Private DNS settings."
+            }, modifier = Modifier.testTag("dns_copy_ads")) { Text("Copy Ads DNS") }
+            Text("Family / Adult block", style = MaterialTheme.typography.titleMedium)
+            Text("Adds adult-domain filtering and Safe Search to Ads protection. This is the parental-filtering option, not a child-proof lock or a guarantee. It may change search results or hide comments.")
+            Text("family.adguard-dns.com", modifier = Modifier.testTag("dns_family_hostname"))
+            OutlinedButton(onClick = {
+                (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("AdGuard Family DNS", "family.adguard-dns.com"))
+                message = "Family DNS copied. Paste it in Android Private DNS settings."
+            }, modifier = Modifier.testTag("dns_copy_family")) { Text("Copy Family DNS") }
+            OutlinedButton(onClick = {
+                try {
+                    context.startActivity(Intent("android.settings.PRIVATE_DNS_SETTINGS"))
+                    message = "Choose a provider hostname in Android. This app has not verified your selection."
+                } catch (_: Exception) {
+                    try {
+                        context.startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+                        message = "Find Private DNS under Network / Connections. Menu names vary by phone."
+                    } catch (_: Exception) {
+                        message = "Settings could not open. Open Android Settings and search for Private DNS."
+                    }
+                }
+            }, modifier = Modifier.testTag("dns_open_settings")) { Text("Open Private DNS settings") }
+            if (message != null) Text(message!!, modifier = Modifier.testTag("dns_setup_message"))
+            Text("Privacy: after you choose AdGuard in Android, website-name lookups and your network IP reach AdGuard, a third-party resolver, over encrypted DNS when supported. The app does not send these lookups or keep a browsing log. This is not an IP-hiding VPN. AdGuard's public DNS privacy policy describes aggregate statistics. No account or payment is needed.")
+            Text("Provider privacy: https://adguard-dns.io/en/privacy.html")
+            Text("Limits: DNS cannot remove every in-app/video ad or filter individual pages on a shared domain. Apps with their own DNS and other VPNs may bypass or replace it. No DNS provider filters every adult site. To undo, set Android Private DNS to Automatic; this changes system-wide DNS, not just this app. No change is made until you save in Android.")
+        }
     }
 }
