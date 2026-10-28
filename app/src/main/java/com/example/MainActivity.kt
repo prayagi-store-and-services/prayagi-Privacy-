@@ -109,7 +109,7 @@ open class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        com.example.update.AppUpdater.retireLegacyUpdater(this)
+        com.example.update.AutomaticUpdateNotice.start(this)
         handleOpenAppSettings(intent)
         if (com.example.geo.GeoGuard.isBlocked(this)) {
             val pad = (24 * resources.displayMetrics.density).toInt()
