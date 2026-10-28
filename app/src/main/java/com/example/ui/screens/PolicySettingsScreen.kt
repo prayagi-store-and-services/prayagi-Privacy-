@@ -458,7 +458,10 @@ fun PolicySettingsScreen(
                         SecurityPatchCheck.Status.UP_TO_DATE ->
                             "Up to date as far as this app knows."
                         SecurityPatchCheck.Status.BEHIND ->
-                            "About ${patchResult.monthsBehind} month(s) behind the newest known level. Open system update and install what your phone offers."
+                            if (patchResult.monthsBehind == 0)
+                                "Earlier than the newest known patch day in the same month. Open system update and install what your phone offers."
+                            else
+                                "About ${patchResult.monthsBehind} month(s) behind the newest known level. Open system update and install what your phone offers."
                         SecurityPatchCheck.Status.UNKNOWN ->
                             "Unavailable - the phone did not report a readable patch level."
                     },

@@ -40,21 +40,30 @@ object SecurityPatchCheck {
     fun evaluate(devicePatch: String?, latestKnown: String = LATEST_KNOWN_PATCH): Result {
         val dev = parse(devicePatch) ?: return Result(Status.UNKNOWN, devicePatch, 0)
         val latest = parse(latestKnown) ?: return Result(Status.UNKNOWN, devicePatch, 0)
-        val behind = (latest.first - dev.first) * 12 + (latest.second - dev.second)
+        val behind = ((latest.year - dev.year) * 12 + (latest.monthValue - dev.monthValue)).coerceAtLeast(0)
         return when {
-            behind <= 0 -> Result(Status.UP_TO_DATE, devicePatch, 0)
+            dev.ordinal >= latest.ordinal -> Result(Status.UP_TO_DATE, devicePatch, 0)
             else -> Result(Status.BEHIND, devicePatch, behind)
         }
     }
 
-    /** Parses "YYYY-MM-DD" into (year, month); anything unreadable is null. */
-    private fun parse(level: String?): Pair<Int, Int>? {
-        if (level.isNullOrBlank()) return null
-        val parts = level.trim().split("-")
-        if (parts.size < 2) return null
-        val y = parts[0].toIntOrNull() ?: return null
-        val m = parts[1].toIntOrNull() ?: return null
-        if (y < 2015 || m !in 1..12) return null
-        return y to m
+    private data class PatchDate(val year: Int, val monthValue: Int, val day: Int) {
+        val ordinal: Int get() = year * 10000 + monthValue * 100 + day
+    }
+
+    /** Requires a real ISO date. Pure arithmetic also works on Android 7 (minSdk 24). */
+    private fun parse(level: String?): PatchDate? {
+        if (level == null || !Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}").matches(level)) return null
+        val year = level.substring(0, 4).toInt()
+        val month = level.substring(5, 7).toInt()
+        val day = level.substring(8, 10).toInt()
+        if (year < 2015 || month !in 1..12) return null
+        val leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+        val days = when (month) {
+            2 -> if (leap) 29 else 28
+            4, 6, 9, 11 -> 30
+            else -> 31
+        }
+        return if (day in 1..days) PatchDate(year, month, day) else null
     }
 }
