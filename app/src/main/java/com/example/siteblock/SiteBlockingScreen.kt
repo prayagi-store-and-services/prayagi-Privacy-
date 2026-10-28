@@ -77,7 +77,7 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         OutlinedButton(onClick = onBack, modifier = Modifier.testTag("siteblock_back")) { Text("Back") }
         DnsChoicesCard()
         Text("Local VPN site blocking: unavailable", style = MaterialTheme.typography.headlineSmall)
-        Text("The local DNS-only VPN is disabled in this version because it could interrupt internet access. Ads and Family VPN modes are not available yet. Private DNS below is separate and does not use this VPN.")
+        Text("The local DNS-only VPN is disabled in this version because it could interrupt internet access. Ads and Family VPN modes are not available yet. Private DNS setup above is separate and does not use this VPN.")
         Text(
             "Uses a list of known adult and gambling websites kept on this phone. When an app or browser asks for the " +
                 "address of a listed site, the local filter is designed to answer that it does not exist. This filter is currently disabled.",
@@ -106,13 +106,9 @@ fun SiteBlockingScreen(onBack: () -> Unit) {
         }
         Text("How site blocking works", style = MaterialTheme.typography.titleMedium)
         Text(
-            "1. Turn the switch on. Android asks once to allow a VPN connection. Allow it.\n" +
-                "2. ${com.example.Brand.name} makes a VPN that stays inside your phone. Nothing is sent to a ${com.example.Brand.name} server.\n" +
-                "3. Every time an app or browser asks for a website address, the phone checks the name against the block list. " +
-                "If the name (or its main domain) is on the list, the phone answers 'no such site' and the page does not open.\n" +
-                "4. Names that are not on the list are passed on to the DNS server your phone already uses.\n" +
-                "5. A key icon shows in the status bar while it is on. Turn the switch off any time.\n" +
-                "Only one VPN can run at a time on Android. This has been tested in automated tests and an emulator, not yet on every phone.",
+            "Unavailable in this version. The local DNS-only VPN is designed to check an on-phone block list and forward other lookups to the network DNS. " +
+                "It does not hide your IP or tunnel all traffic. Android allows only one VPN at a time. " +
+                "Do not rely on this disabled local filter for protection. Use Android Private DNS setup above if you choose a third-party resolver.",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.testTag("siteblock_how_it_works")
         )
