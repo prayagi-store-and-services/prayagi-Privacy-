@@ -1,3 +1,6 @@
+## 1.4.28
+Automatic newer-version popup and notification. Metadata is checked at most once daily, subject to Android battery/network limits, not instantly. Update opens this app page in compatible Netra Ecosystem or the Eco website. No manual update check, APK download, installation or unknown-source permission request in this app. Notification denial is respected.
+
 ## Patch-status date validation (v1.4.27)
 
 The phone patch card now requires a complete, real YYYY-MM-DD date and compares the exact day, not just the month. A missing day, impossible date or trailing text shows Unavailable instead of looking current. An earlier patch day in the same month is shown as behind with a day-specific explanation, not "0 months behind". Regression tests cover same-month patch days, leap dates and malformed values.

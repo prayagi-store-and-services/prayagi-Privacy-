@@ -1,3 +1,6 @@
+## 1.4.28 metadata-only notices
+Daily battery/network-constrained WorkManager checks share a persisted attempt gate with foreground checks. Notification permission and blocked channels are respected; notices are version-deduplicated. Update taps resolve at tap time, falling back to the exact Eco website page if compatible Eco cannot open. No APK handling or install permission. No new library, telemetry or server. This is not a vulnerability patch or proof of physical-device battery performance. Release requires final-head CI, independent review and native UI inspection.
+
 ## Patch-status date validation (v1.4.27)
 
 The phone patch card now requires a complete, real YYYY-MM-DD date and compares the exact day, not just the month. A missing day, impossible date or trailing text shows Unavailable instead of looking current. An earlier patch day in the same month is shown as behind with a day-specific explanation, not "0 months behind". Regression tests cover same-month patch days, leap dates and malformed values.
