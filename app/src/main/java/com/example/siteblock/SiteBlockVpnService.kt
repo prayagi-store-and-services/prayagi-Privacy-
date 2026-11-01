@@ -174,7 +174,9 @@ class SiteBlockVpnService : VpnService() {
     private fun startBlocking() {
         val prefs = SiteBlockPrefs(this)
         lastStartError = null
+        startStage = "loading-list"
         val set = SiteBlockLoader.load(this)
+        startStage = "list-loaded"
         if (set == null) { fail(prefs, "The block list could not be loaded."); return }
         // Strict Private DNS (DNS over TLS to a named server) cannot pass through this plain-DNS filter and would cut off
         // all internet while blocking is on, so blocking refuses to start in that case.
@@ -184,6 +186,7 @@ class SiteBlockVpnService : VpnService() {
         val upstream = phoneDnsServer()
         if (upstream == null) { fail(prefs, "No DNS server was found on this network, so blocking was not started."); return }
         val matcher = SiteMatcher(set, prefs.allow)
+        startStage = "establishing"
         val fd = try {
             Builder().setSession("SensorGuard site blocking")
                 .addAddress(VPN_ADDR, 32)
@@ -290,6 +293,7 @@ class SiteBlockVpnService : VpnService() {
         @Volatile var tunnelActive: Boolean = false
         /** Last startBlocking failure, for the device proof test (same process). */
         @Volatile var lastStartError: String? = null
+        @Volatile var startStage: String = "idle"
         const val ACTION_STOP = "com.example.siteblock.STOP"
         private const val CHANNEL = "site_block"
         private const val NOTIF_ID = 4107
