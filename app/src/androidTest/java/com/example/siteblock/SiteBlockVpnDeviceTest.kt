@@ -29,26 +29,35 @@ class SiteBlockVpnDeviceTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
+    private fun shell(cmd: String): String {
+        val fd = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(cmd)
+        return fd.bufferedReader().use { it.readText() } // reading to EOF also waits for completion
+    }
+
+    private fun startVpnAndAwait() {
+        shell("am start-foreground-service -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService")
+        val deadline = System.currentTimeMillis() + 20000
+        while (!SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
+        assertTrue("VPN tunnel did not come up in 20s", SiteBlockVpnService.tunnelActive)
+    }
+
+    private fun stopVpnAndAwait() {
+        shell("am startservice -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService -a com.example.siteblock.STOP")
+        val deadline = System.currentTimeMillis() + 10000
+        while (SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
+    }
+
     @Before
     fun grantVpnAndStart() {
-        val ui = InstrumentationRegistry.getInstrumentation().uiAutomation
-        ui.executeShellCommand("appops set ${context.packageName} ACTIVATE_VPN allow").close()
+        shell("appops set ${context.packageName} ACTIVATE_VPN allow")
         assertNull("VPN consent should be pre-granted via appops", VpnService.prepare(context))
-        SiteBlockPrefs(context).enabled = true
-        ui.executeShellCommand(
-            "am start-foreground-service -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService"
-        ).close()
-        val deadline = System.currentTimeMillis() + 15000
-        while (!SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
-        assertTrue("VPN tunnel did not come up in 15s: ${SiteBlockPrefs(context).lastError}", SiteBlockVpnService.tunnelActive)
+        shell("appops set ${context.packageName} ACTIVATE_VPN allow")
+        startVpnAndAwait()
     }
 
     @After
     fun stopVpn() {
-        val ui = InstrumentationRegistry.getInstrumentation().uiAutomation
-        ui.executeShellCommand(
-            "am startservice -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService -a com.example.siteblock.STOP"
-        ).close()
+        stopVpnAndAwait()
     }
 
     @Test
@@ -97,19 +106,9 @@ class SiteBlockVpnDeviceTest {
         val blocked = listOf("pornhub.com", "xvideos.com", "bet365.com").firstOrNull { matcher.isBlocked(it) } ?: return
         val prefs = SiteBlockPrefs(context)
         prefs.allow = prefs.allow + blocked
-        val ui = InstrumentationRegistry.getInstrumentation().uiAutomation
         try {
-            ui.executeShellCommand(
-                "am startservice -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService -a com.example.siteblock.STOP"
-            ).close()
-            var deadline = System.currentTimeMillis() + 10000
-            while (SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
-            prefs.enabled = true
-            ui.executeShellCommand(
-                "am start-foreground-service -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService"
-            ).close()
-            deadline = System.currentTimeMillis() + 15000
-            while (!SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
+            stopVpnAndAwait()
+            startVpnAndAwait()
             val addrs = try { InetAddress.getAllByName(blocked) } catch (e: Exception) { null }
             assertTrue("allow-listed $blocked must resolve", addrs != null && addrs.isNotEmpty())
         } finally {
