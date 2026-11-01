@@ -81,6 +81,15 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: bash scripts/security-proof.sh
+      - name: VPN keeps internet working on disposable emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: bash scripts/vpn-internet-proof.sh
       - name: Upload genuine fixture and candidate UI proof
         if: always()
         uses: actions/upload-artifact@v7
