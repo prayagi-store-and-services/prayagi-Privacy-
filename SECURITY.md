@@ -1,3 +1,6 @@
+## 1.4.29 site blocking re-enabled
+The 12 Oct kill-switch is removed; the local DNS filter runs again. The tunnel routes only the fake DNS address (all other traffic bypasses the VPN by construction), fail-opens after repeated upstream DNS failures, and refuses to start under strict Private DNS. A new CI gate proves on a disposable API-35 emulator that ordinary DNS, HTTPS, NXDOMAIN blocking and the allow list all behave with the VPN on. This is a reliability fix, not a vulnerability patch. No new permission, library, telemetry or server; visited site names are still never stored. Release requires final-head CI, independent review and native UI inspection.
+
 ## 1.4.28 metadata-only notices
 Daily battery/network-constrained WorkManager checks share a persisted attempt gate with foreground checks. Notification permission and blocked channels are respected; notices are version-deduplicated. Update taps resolve at tap time, falling back to the exact Eco website page if compatible Eco cannot open. No APK handling or install permission. No new library, telemetry or server. This is not a vulnerability patch or proof of physical-device battery performance. Release requires final-head CI, independent review and native UI inspection.
 
