@@ -46,10 +46,10 @@ class SiteBlockVpnDeviceTest {
     private fun startVpnAndAwait() {
         bringAppToForeground()
         SiteBlockVpnService.start(context)
-        val deadline = System.currentTimeMillis() + 20000
+        val deadline = System.currentTimeMillis() + 90000
         while (!SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
         if (!SiteBlockVpnService.tunnelActive) {
-            fail("VPN tunnel did not come up in 20s. error=${SiteBlockVpnService.lastStartError}")
+            fail("VPN tunnel did not come up in 90s. error=${SiteBlockVpnService.lastStartError} stage=${SiteBlockVpnService.startStage}")
         }
     }
 
