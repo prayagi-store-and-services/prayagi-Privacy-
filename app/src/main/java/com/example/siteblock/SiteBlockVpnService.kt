@@ -173,6 +173,7 @@ class SiteBlockVpnService : VpnService() {
 
     private fun startBlocking() {
         val prefs = SiteBlockPrefs(this)
+        lastStartError = null
         val set = SiteBlockLoader.load(this)
         if (set == null) { fail(prefs, "The block list could not be loaded."); return }
         // Strict Private DNS (DNS over TLS to a named server) cannot pass through this plain-DNS filter and would cut off
@@ -201,6 +202,7 @@ class SiteBlockVpnService : VpnService() {
     }
 
     private fun fail(prefs: SiteBlockPrefs, msg: String) {
+        lastStartError = msg
         prefs.lastError = msg
         prefs.enabled = false
         stopBlocking()
@@ -286,6 +288,8 @@ class SiteBlockVpnService : VpnService() {
     companion object {
         /** True once the tunnel interface is established. Used by the device proof test; no user data. */
         @Volatile var tunnelActive: Boolean = false
+        /** Last startBlocking failure, for the device proof test (same process). */
+        @Volatile var lastStartError: String? = null
         const val ACTION_STOP = "com.example.siteblock.STOP"
         private const val CHANNEL = "site_block"
         private const val NOTIF_ID = 4107

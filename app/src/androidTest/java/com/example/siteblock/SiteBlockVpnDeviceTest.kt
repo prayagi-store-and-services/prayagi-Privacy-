@@ -35,10 +35,13 @@ class SiteBlockVpnDeviceTest {
     }
 
     private fun startVpnAndAwait() {
-        shell("am start-foreground-service -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService")
+        val out = shell("am start-foreground-service -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService")
         val deadline = System.currentTimeMillis() + 20000
         while (!SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
-        assertTrue("VPN tunnel did not come up in 20s", SiteBlockVpnService.tunnelActive)
+        if (!SiteBlockVpnService.tunnelActive) {
+            val services = shell("dumpsys activity services ${context.packageName}").take(800)
+            fail("VPN tunnel did not come up in 20s. start=[$out] error=${SiteBlockVpnService.lastStartError} services=$services")
+        }
     }
 
     private fun stopVpnAndAwait() {
