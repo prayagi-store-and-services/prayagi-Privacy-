@@ -34,18 +34,28 @@ class SiteBlockVpnDeviceTest {
         return java.io.FileInputStream(fd.fileDescriptor).bufferedReader().use { it.readText() } // reading to EOF also waits for completion
     }
 
+    // The service declares BIND_VPN_SERVICE, so only same-UID callers may start it.
+    // The app process must be foreground for an FGS start, so launch MainActivity first.
+    private fun bringAppToForeground() {
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)!!
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+        Thread.sleep(1500)
+    }
+
     private fun startVpnAndAwait() {
-        val out = shell("am start-foreground-service -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService")
+        bringAppToForeground()
+        SiteBlockVpnService.start(context)
         val deadline = System.currentTimeMillis() + 20000
         while (!SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
         if (!SiteBlockVpnService.tunnelActive) {
-            val services = shell("dumpsys activity services ${context.packageName}").take(800)
-            fail("VPN tunnel did not come up in 20s. start=[$out] error=${SiteBlockVpnService.lastStartError} services=$services")
+            fail("VPN tunnel did not come up in 20s. error=${SiteBlockVpnService.lastStartError}")
         }
     }
 
     private fun stopVpnAndAwait() {
-        shell("am startservice -n ${context.packageName}/com.example.siteblock.SiteBlockVpnService -a com.example.siteblock.STOP")
+        bringAppToForeground()
+        SiteBlockVpnService.stop(context)
         val deadline = System.currentTimeMillis() + 10000
         while (SiteBlockVpnService.tunnelActive && System.currentTimeMillis() < deadline) Thread.sleep(250)
     }
