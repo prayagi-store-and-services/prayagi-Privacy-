@@ -31,7 +31,7 @@ class SiteBlockVpnDeviceTest {
 
     private fun shell(cmd: String): String {
         val fd = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(cmd)
-        return fd.bufferedReader().use { it.readText() } // reading to EOF also waits for completion
+        return java.io.FileInputStream(fd.fileDescriptor).bufferedReader().use { it.readText() } // reading to EOF also waits for completion
     }
 
     private fun startVpnAndAwait() {
