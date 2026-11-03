@@ -1,3 +1,7 @@
+## v1.4.30 - update notice cadence
+
+Presentation/cadence change only. Update checks remain metadata-only (one small GitHub releases read; artifact fields are never read, nothing downloads). Cadence rises to at most every 6 hours with the same backoff; the settings card hides update status unless a newer version verifies. No new permission, dependency, endpoint or stored data.
+
 ## 1.4.29 site blocking re-enabled
 The 12 Oct kill-switch is removed; the local DNS filter runs again. The tunnel routes only the fake DNS address (all other traffic bypasses the VPN by construction), fail-opens after repeated upstream DNS failures, and refuses to start under strict Private DNS. A new CI gate proves on a disposable API-35 emulator that ordinary DNS, HTTPS, NXDOMAIN blocking and the allow list all behave with the VPN on. This is a reliability fix, not a vulnerability patch. No new permission, library, telemetry or server; visited site names are still never stored. Release requires final-head CI, independent review and native UI inspection.
 
