@@ -1,3 +1,8 @@
+## 1.4.30 - Cleaner update notices
+
+- Update checks now happen at most every 6 hours instead of once a day, so new versions are noticed sooner.
+- Settings no longer shows the long static update explainer; the update card appears only when a newer version is verified.
+
 ## 1.4.29
 - Site blocking works again. It was switched off inside the app since 12 October because it could cut off the internet. The DNS filter is now proven on a fresh emulator phone before this release: with blocking ON, ordinary websites still open, secure (HTTPS) pages still load, only listed sites answer "does not exist", and your own allowed sites open again after a restart. If blocking still stops your internet after this update, please send feedback from the app with your phone model and Android version.
 - Policy & Configuration has five official Netra social profiles, the Privacy website and a separate private complaint/feedback form. External browser links open only after a tap. No automatic follow, rating or post, new permission or background network request. Private feedback is sent through FormSubmit by the web form. No live delivery or physical-phone testing is claimed.
