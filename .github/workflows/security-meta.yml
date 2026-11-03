@@ -50,7 +50,7 @@ jobs:
             assert(scripts.has("'sha256-" + hash + "'"), 'Missing script hash in ' + file);
            }
            const connections = rules.get('connect-src');
-           assert.deepEqual([...connections].sort(), ["'self'", 'https://api.github.com', 'https://firestore.googleapis.com', 'https://formsubmit.co'].sort());
+           assert.deepEqual([...connections].sort(), ["'self'", 'https://*.clarity.ms', 'https://*.google-analytics.com', 'https://api.github.com', 'https://clarity.ms', 'https://firestore.googleapis.com', 'https://formsubmit.co'].sort());
            assert.deepEqual([...rules.get('frame-src')], ["'self'"]);
            assert(source.indexOf('Content-Security-Policy') < source.indexOf('<script'));
            console.log('PASS exact hashes and directive tokens:', file);
