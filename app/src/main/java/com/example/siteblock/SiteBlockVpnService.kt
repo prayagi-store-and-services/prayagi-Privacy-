@@ -192,6 +192,11 @@ class SiteBlockVpnService : VpnService() {
                 .addAddress(VPN_ADDR, 32)
                 .addDnsServer(FAKE_DNS)
                 .addRoute(FAKE_DNS, 32)
+                // This is a DNS-only filter, not an IPv6 tunnel. Android blocks an
+                // unconfigured family by default, even for traffic outside our route.
+                // Keep ordinary IPv6 internet on the underlying network. This does not
+                // inspect or block encrypted DNS or arbitrary IPv6 connections.
+                .allowFamily(android.system.OsConstants.AF_INET6)
                 .setBlocking(true)
                 .establish()
         } catch (e: Exception) { null }
