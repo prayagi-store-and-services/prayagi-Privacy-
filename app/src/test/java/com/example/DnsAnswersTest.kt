@@ -50,6 +50,11 @@ class DnsAnswersTest {
         val start = 12 + question.size; r[start + 1] = start.toByte()
         assertTrue(DnsAnswers.parse(query(), r).isEmpty())
     }
+    @Test fun ignoresUnrelatedAnswerOwners() {
+        val data = rr(1, byteArrayOf(1, 2, 3, 4))
+        val other = byteArrayOf(5) + "other".toByteArray() + byteArrayOf(3) + "com".toByteArray() + byteArrayOf(0) + data.copyOfRange(2, data.size)
+        assertTrue(DnsAnswers.parse(query(), response(other)).isEmpty())
+    }
     @Test fun everyPrefixOfAValidReplyIsSafeAndEmpty() {
         val r = response(rr(1, byteArrayOf(1, 2, 3, 4)))
         for (n in 0 until r.size) assertTrue(DnsAnswers.parse(query(), r.copyOf(n)).isEmpty())

@@ -3,9 +3,11 @@
 `DnsAnswers.parse` is a pure parser. It returns answer-section IN A/AAAA addresses
 and TTL values only after transaction/question validation. Malformed, truncated,
 failed and mismatched replies are rejected. No additional-section glue is shown.
+Only exact queried-name owners are emitted. CNAME target records are deliberately
+omitted until a tested chain validator exists. Unrelated answer owners are ignored.
 It does not perform network I/O, save any history or change the running VPN.
 
-Local Kotlin 2.2.10 compile and JUnit4 run: 8 tests passed. The tests cover A/AAAA,
+Local Kotlin 2.2.10 compile and JUnit4 run: 9 tests passed. The tests cover A/AAAA,
 compressed names, wrong transaction/question, truncated/error replies, short or
 wrong-length address records, unsupported/additional records, bad compression,
 and every truncated prefix of a valid reply. This is not Android build/device proof.

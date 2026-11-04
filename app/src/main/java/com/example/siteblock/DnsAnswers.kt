@@ -9,7 +9,8 @@ object DnsAnswers {
     /**
      * Reject malformed, truncated, failed or unrelated replies. No network I/O.
      * Only IN A/AAAA records in the answer section are returned, never additional
-     * glue records. A caller must still treat them as DNS observations, not traffic.
+     * glue records. Only records owned by the queried name are returned; CNAME
+     * targets are omitted until chain validation is implemented. A caller must still treat them as DNS observations, not traffic.
      */
     fun parse(query: DnsQuery, reply: ByteArray): List<DnsAddressAnswer> {
         if (reply.size < 12 || query.dnsPayload.size < 12) return emptyList()
@@ -37,7 +38,7 @@ object DnsAnswers {
             val length = u16(reply, offset + 8)
             offset += 10
             if (length > reply.size - offset) return emptyList()
-            if (clazz == 1 && ((type == 1 && length == 4) || (type == 28 && length == 16))) {
+            if (clazz == 1 && owner.first.equals(query.name, ignoreCase = true) && ((type == 1 && length == 4) || (type == 28 && length == 16))) {
                 out.add(DnsAddressAnswer(if (type == 1) 4 else 6, reply.copyOfRange(offset, offset + length).map { it.toInt() and 255 }, ttl))
             } else if (clazz == 1 && (type == 1 || type == 28)) return emptyList()
             offset += length
