@@ -1,0 +1,10 @@
+IP Geolocation by DB-IP (https://db-ip.com/).
+DB-IP IP to Country Lite, November 2026.
+Source: https://download.db-ip.com/free/dbip-country-lite-2026-11.csv.gz
+Source SHA256: e5c8459d638a272ece7f4d7cfa49dce18d91b4f403f6940ba9249bf0db3781fd
+Terms: https://db-ip.com/db/download/ip-to-country-lite
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+Modified: converted CSV to a compact binary range index. Values unchanged.
+Reduced coverage and accuracy. Country is approximate IP geography, not proof of
+where data is stored. No endorsement by DB-IP is implied.
