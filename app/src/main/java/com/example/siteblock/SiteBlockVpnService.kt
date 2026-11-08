@@ -25,7 +25,7 @@ import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
-/** Settings kept on the phone only. The names of visited sites are never stored. */
+/** Settings kept on the phone only. The names of visited sites are never stored unless the user turns on the on-device observation log (off by default). */
 class SiteBlockPrefs(context: Context) {
     private val p = context.applicationContext.getSharedPreferences("site_block", Context.MODE_PRIVATE)
     var enabled: Boolean
@@ -34,6 +34,10 @@ class SiteBlockPrefs(context: Context) {
     var allow: Set<String>
         get() = p.getStringSet("allow", emptySet()) ?: emptySet()
         set(v) { p.edit().putStringSet("allow", v).apply() }
+    /** Off by default. When on, recent DNS observations are kept in a small file on this phone only, never sent. */
+    var dnsLogEnabled: Boolean
+        get() = p.getBoolean("dns_log_enabled", false)
+        set(v) { p.edit().putBoolean("dns_log_enabled", v).apply() }
     var lastError: String?
         get() = p.getString("last_error", null)
         set(v) { p.edit().putString("last_error", v).apply() }
@@ -98,7 +102,8 @@ object SiteBlockLoader {
 /**
  * Local DNS filter. The phone is told its DNS server is a made-up address that only this app answers; only DNS
  * questions go through here. A blocked name gets "does not exist"; every other question is passed unchanged to the
- * phone's own DNS server. Nothing else is read or sent, and no visited names are saved.
+ * phone's own DNS server. Nothing else is read or sent, and no visited names are saved. When the user turns on the
+ * optional observation log, recent lookups (with best-effort app and answer-country guesses) are kept on the phone only.
  */
 class SiteBlockVpnService : VpnService() {
     private var tun: ParcelFileDescriptor? = null
@@ -106,6 +111,10 @@ class SiteBlockVpnService : VpnService() {
     private var worker: Thread? = null
     private val pool = Executors.newFixedThreadPool(6)
     private val dnsFailStreak = java.util.concurrent.atomic.AtomicInteger(0)
+    @Volatile private var countryIndex: IpCountryIndex? = null
+    private val obsLog by lazy { DnsObservationLog(File(filesDir, "dns_observations.log")) }
+    private var ownerMap: Map<Int, Int> = emptyMap()
+    private var ownerMapAt = 0L
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
@@ -185,6 +194,10 @@ class SiteBlockVpnService : VpnService() {
         // Read the phone's own DNS server before our VPN becomes the active network.
         val upstream = phoneDnsServer()
         if (upstream == null) { fail(prefs, "No DNS server was found on this network, so blocking was not started."); return }
+        countryIndex = try {
+            val name = assets.list("ip-country")?.firstOrNull { it.endsWith(".ncg.gz") }
+            if (name == null) null else assets.open("ip-country/" + name).use { IpCountryIndex.load(it) }
+        } catch (e: Exception) { null }
         val matcher = SiteMatcher(set, prefs.allow)
         startStage = "establishing"
         val fd = try {
@@ -233,6 +246,9 @@ class SiteBlockVpnService : VpnService() {
                         val answer = DnsPacket.reply(q, DnsPacket.nxdomain(q.dnsPayload))
                         synchronized(output) { output.write(answer) }
                         pending.incrementAndGet()
+                        if (prefs.dnsLogEnabled) {
+                            try { obsLog.append(DnsObservation(System.currentTimeMillis(), q.name, true, emptyList(), appForPort(q.srcPort))) } catch (e: Exception) { }
+                        }
                     } else {
                         warnIfFakeBank(q.name)
                         pool.execute { forward(q, upstream, output, prefs) }
@@ -261,9 +277,18 @@ class SiteBlockVpnService : VpnService() {
                 val rb = ByteArray(4096)
                 val dp = DatagramPacket(rb, rb.size)
                 s.receive(dp)
-                val answer = DnsPacket.reply(q, rb.copyOf(dp.length))
+                val raw = rb.copyOf(dp.length)
+                val answer = DnsPacket.reply(q, raw)
                 synchronized(output) { output.write(answer) }
                 dnsFailStreak.set(0)
+                if (prefs.dnsLogEnabled) {
+                    try {
+                        val countries = DnsAnswers.parse(q, raw)
+                            .mapNotNull { a -> countryIndex?.country(a.bytes.map { it.toByte() }.toByteArray()) }
+                            .distinct()
+                        obsLog.append(DnsObservation(System.currentTimeMillis(), q.name, false, countries, appForPort(q.srcPort)))
+                    } catch (e: Exception) { }
+                }
             }
         } catch (e: Exception) {
             // No answer. If DNS keeps failing, fail open: stop the tunnel so the phone's internet is never cut off.
@@ -271,6 +296,19 @@ class SiteBlockVpnService : VpnService() {
                 fail(prefs, "Blocking was turned off because the phone's DNS stopped answering. Your internet is back to normal.")
             }
         }
+    }
+
+    /** Best-effort: which app asked, from the kernel UDP table. Null when unknown; never breaks DNS. */
+    private fun appForPort(port: Int): String? {
+        return try {
+            val now = System.currentTimeMillis()
+            if (now - ownerMapAt > 2000) {
+                ownerMap = UdpOwnerMap.parse(File("/proc/net/udp").readText())
+                ownerMapAt = now
+            }
+            val uid = ownerMap[port] ?: return null
+            packageManager.getPackagesForUid(uid)?.firstOrNull()
+        } catch (e: Exception) { null }
     }
 
     private fun stopBlocking() {
