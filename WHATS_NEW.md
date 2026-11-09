@@ -1,3 +1,8 @@
+## 1.4.31 - Honest microphone-lock state
+
+- Fix: the microphone guard no longer reports a lock when the microphone could not actually be reserved (for example when permission is missing or the system refuses). In those cases the app now shows that protection is not active instead of claiming it.
+- No new permission, dependency, endpoint or stored data.
+
 ## 1.4.30 - Cleaner update notices
 
 - Update checks now happen at most every 6 hours instead of once a day, so new versions are noticed sooner.

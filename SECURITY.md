@@ -1,3 +1,7 @@
+## v1.4.31 - honest lock state
+
+Correctness fix only: AudioLockManager reported a successful microphone lock even when acquisition failed (denied audio focus, failed AudioRecord start or missing permission). It now reports the real result, so status and ledger no longer claim protection that was not engaged. This removes a false-protection claim; it adds no enforcement capability. No new permission, library, telemetry or server. Not a vulnerability patch for a remote exploit; it fixes misleading local state.
+
 ## v1.4.30 - update notice cadence
 
 Presentation/cadence change only. Update checks remain metadata-only (one small GitHub releases read; artifact fields are never read, nothing downloads). Cadence rises to at most every 6 hours with the same backoff; the settings card hides update status unless a newer version verifies. No new permission, dependency, endpoint or stored data.
