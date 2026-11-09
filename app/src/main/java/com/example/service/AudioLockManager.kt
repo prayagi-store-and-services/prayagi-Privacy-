@@ -35,12 +35,16 @@ class AudioLockManager(private val context: Context) {
             // Step 1: Audio focus is taken ONLY in Power Saver mode. In the hardware mode it is not
             // requested, because exclusive focus makes the system pause the user's music or video
             // when the screen turns off. The hardware line reservation below does not stop playback.
-            if (shouldRequestAudioFocus(mode)) requestAudioFocus()
-
             if (mode == AudioLockMode.AUDIO_FOCUS_ONLY) {
-                isRecordingLocked = true
-                Log.d("AudioLockManager", "Audio focus guard lock engaged (Power Saver mode)")
-                return true
+                // Report the real grant result; a denied focus request is not a lock.
+                val focusGranted = if (shouldRequestAudioFocus(mode)) requestAudioFocus() else false
+                isRecordingLocked = focusGranted
+                if (focusGranted) {
+                    Log.d("AudioLockManager", "Audio focus guard lock engaged (Power Saver mode)")
+                } else {
+                    Log.w("AudioLockManager", "Audio focus request was denied by system")
+                }
+                return focusGranted
             }
 
             // Step 2: Acquire AudioRecord hardware line if RECORD_AUDIO permission is present
@@ -61,10 +65,16 @@ class AudioLockManager(private val context: Context) {
 
                 if (record.state == AudioRecord.STATE_INITIALIZED) {
                     record.startRecording()
-                    audioRecord = record
-                    isRecordingLocked = true
-                    Log.d("AudioLockManager", "Microphone exclusive guard lock engaged successfully")
-                    return true
+                    if (record.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
+                        audioRecord = record
+                        isRecordingLocked = true
+                        Log.d("AudioLockManager", "Microphone exclusive guard lock engaged successfully")
+                        return true
+                    } else {
+                        Log.w("AudioLockManager", "AudioRecord initialized but failed to enter RECORDSTATE_RECORDING")
+                        try { record.stop() } catch (ignored: Exception) {}
+                        record.release()
+                    }
                 } else {
                     record.release()
                 }
@@ -75,9 +85,10 @@ class AudioLockManager(private val context: Context) {
             Log.e("AudioLockManager", "Failed to engage audio lock: ${e.message}", e)
         }
 
-        // Even if AudioRecord could not be opened (for example no microphone permission yet), the guard state is kept
-        isRecordingLocked = true
-        return true
+        // Honest failure state: never report a lock when AudioRecord or permission failed.
+        audioRecord = null
+        isRecordingLocked = false
+        return false
     }
 
     @Synchronized
@@ -104,9 +115,9 @@ class AudioLockManager(private val context: Context) {
     val isLocked: Boolean
         get() = isRecordingLocked
 
-    private fun requestAudioFocus() {
+    private fun requestAudioFocus(): Boolean {
         try {
-            val am = audioManager ?: return
+            val am = audioManager ?: return false
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val playbackAttributes = AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
@@ -119,17 +130,18 @@ class AudioLockManager(private val context: Context) {
                     .setOnAudioFocusChangeListener { /* handle if necessary */ }
                     .build()
                 focusRequest = req
-                am.requestAudioFocus(req)
+                return am.requestAudioFocus(req) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             } else {
                 @Suppress("DEPRECATION")
-                am.requestAudioFocus(
+                return am.requestAudioFocus(
                     null,
                     AudioManager.STREAM_VOICE_CALL,
                     AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE
-                )
+                ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             }
         } catch (e: Exception) {
             Log.e("AudioLockManager", "Error requesting audio focus: ${e.message}")
+            return false
         }
     }
 
