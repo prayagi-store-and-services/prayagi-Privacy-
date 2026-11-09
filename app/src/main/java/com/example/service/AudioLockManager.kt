@@ -115,9 +115,9 @@ class AudioLockManager(private val context: Context) {
     val isLocked: Boolean
         get() = isRecordingLocked
 
-    private fun requestAudioFocus() {
+    private fun requestAudioFocus(): Boolean {
         try {
-            val am = audioManager ?: return
+            val am = audioManager ?: return false
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val playbackAttributes = AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
@@ -130,17 +130,18 @@ class AudioLockManager(private val context: Context) {
                     .setOnAudioFocusChangeListener { /* handle if necessary */ }
                     .build()
                 focusRequest = req
-                am.requestAudioFocus(req)
+                return am.requestAudioFocus(req) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             } else {
                 @Suppress("DEPRECATION")
-                am.requestAudioFocus(
+                return am.requestAudioFocus(
                     null,
                     AudioManager.STREAM_VOICE_CALL,
                     AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE
-                )
+                ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
             }
         } catch (e: Exception) {
             Log.e("AudioLockManager", "Error requesting audio focus: ${e.message}")
+            return false
         }
     }
 
