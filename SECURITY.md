@@ -1,3 +1,7 @@
+## v1.4.32 - skip spoken announcements while media plays
+
+Behaviour change, not a vulnerability fix, and no vulnerability fix is claimed. The Jay Mata Di greeting is now skipped whenever other media (video or audio) is playing. It no longer pauses, ducks or takes audio focus. The check runs before starting and again right before speaking; if it cannot decide, the announcement is skipped. Known limits: silent video, cast/remote playback and manufacturer-hidden players may not be detected; on Android 13 and older only the music-stream check is available. No new permission, library, endpoint or data. Automated build/test evidence only; not verified on a physical phone.
+
 ## v1.4.31 - honest lock state
 
 Correctness fix only: AudioLockManager reported a successful microphone lock even when acquisition failed (denied audio focus, failed AudioRecord start or missing permission). It now reports the real result, so status and ledger no longer claim protection that was not engaged. This removes a false-protection claim; it adds no enforcement capability. No new permission, library, telemetry or server. Not a vulnerability patch for a remote exploit; it fixes misleading local state.
