@@ -1,3 +1,8 @@
+## 1.4.32 - Announcements wait for media
+
+- The Jay Mata Di greeting is skipped while any media is playing, instead of interrupting it.
+- No new permission, dependency, endpoint or stored data.
+
 ## 1.4.31 - Honest microphone-lock state
 
 - Fix: the microphone guard no longer reports a lock when the microphone could not actually be reserved (for example when permission is missing or the system refuses). In those cases the app now shows that protection is not active instead of claiming it.
