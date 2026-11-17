@@ -40,7 +40,9 @@ jobs:
           set -euo pipefail
           curl -fsSL "https://raw.githubusercontent.com/blocklistproject/Lists/master/ads.txt" -o out/ads.txt
           head -5 out/ads.txt
-          lic=$(curl -fsSL "https://api.github.com/repos/blocklistproject/Lists/license" | python3 -c "import json,sys;print(json.load(sys.stdin)['license']['spdx_id'])")
+          # gh uses the job's existing GH_TOKEN; curl ignored that variable and
+          # sent an unauthenticated API read. Keep licence lookup fail-closed.
+          lic=$(gh api repos/blocklistproject/Lists/license --jq '.license.spdx_id')
           echo "blocklistproject/Lists licence: $lic"
           case "$lic" in MIT|Unlicense) : ;; *) echo "unexpected licence - refusing"; exit 1 ;; esac
       - name: Build + self-test the PC list (green gate)
