@@ -23,16 +23,11 @@ import kotlinx.coroutines.delay
 
 /** Shows today's festival, Independence Day or condolence. Hidden when there is nothing to show. Data is bundled, works offline. */
 @Composable
-fun FestivalBannerCard(modifier: Modifier = Modifier) {
-    var now by remember { mutableStateOf(Date()) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            now = Date()
-            delay(1000)
-        }
-    }
+fun FestivalBannerCard(modifier: Modifier = Modifier, clock: com.example.power.HeaderClock? = null) {
+    // The hosting screen shares one lifecycle-owned clock. Standalone previews are snapshots.
+    val now = clock?.now ?: remember { Date() }
     val banner: Banner = remember(java.text.SimpleDateFormat("yyyyMMdd").format(now)) {
-        FestivalBanner.pick(Calendar.getInstance())
+        FestivalBanner.pick(Calendar.getInstance().apply { time = now })
     } ?: return
     val b = Color(banner.accent2)
     val sorrow = banner.kind == BannerKind.SORROW
@@ -44,7 +39,7 @@ fun FestivalBannerCard(modifier: Modifier = Modifier) {
         Text(banner.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = if (sorrow) b else MaterialTheme.colorScheme.primary)
         Text(banner.text, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
         Text(
-            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(now),
+            if (clock?.paused == true) "Clock paused (power saving)" else DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(now),
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
